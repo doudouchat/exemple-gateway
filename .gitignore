@@ -1,0 +1,14 @@
+.settings
+.project
+.classpath
+.tern-project
+target
+dist
+coverage
+node_modules/
+.tscache/
+node/
+.toDelete
+npm-debug.log
+/.idea/
+**/*.iml

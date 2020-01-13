@@ -1,0 +1,33 @@
+gateway:
+   hazelcast:
+      port: 5075
+   security: 
+      excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /ExempleAuthorization/oauth/.*
+security:
+   oauth2:
+      client:
+         clientId: resource
+         clientSecret: secret
+      resource:
+         jwt:
+            keyUri: http://172.17.0.1:8084/ExempleAuthorization/oauth/token_key
+api:
+   ribbon:
+      listOfServers: http://172.17.0.1:8080/ExempleService
+      ConnectTimeout: 3000
+      ReadTimeout: 10000
+authorization:
+   ribbon:
+      listOfServers: http://172.17.0.1:8084/ExempleAuthorization
+      ConnectTimeout: 3000
+      ReadTimeout: 3000
+zuul:
+   routes:
+      api:
+         path: /ExempleService/**
+         sensitiveHeaders: null
+         stripPrefix: false
+      authorization:
+         path: /ExempleAuthorization/**
+         sensitiveHeaders: null
+         stripPrefix: false

@@ -1,0 +1,27 @@
+gateway:
+   hazelcast:
+      port: ${hazelcast.port}
+   security: 
+      excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /ExempleAuthorization/oauth/.*
+security:
+   oauth2:
+      client:
+         clientId: resource
+         clientSecret: secret
+      resource:
+         jwt:
+            keyValue: abc
+api:
+   ribbon:
+      listOfServers: ${application.host}:${test.port}/${application.contextpath}
+      ConnectTimeout: 3000
+      ReadTimeout: 3000
+zuul:
+   routes:
+      api:
+         path: /${application.contextpath}/**
+         sensitiveHeaders: null
+         stripPrefix: false
+   debug:
+      request: true
+   include-debug-header: true

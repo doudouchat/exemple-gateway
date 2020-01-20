@@ -9,7 +9,7 @@
 ## Docker
 
 <ol>
-<li>docker build -t exemple-gateway exemple-gateway-server</li>
+<li>docker build -t exemple-gateway .</li>
 </ol>
 
 <ol>

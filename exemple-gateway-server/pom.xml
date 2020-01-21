@@ -151,14 +151,14 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
-		
+
 		<!-- GROOVY -->
 
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
 		</dependency>
-		
+
 		<!-- GOOGLE GUAVA -->
 
 		<dependency>
@@ -166,7 +166,7 @@
 			<artifactId>guava</artifactId>
 			<version>20.0</version>
 		</dependency>
-		
+
 		<!-- TEST -->
 
 		<dependency>
@@ -255,6 +255,15 @@
 				<artifactId>maven-war-plugin</artifactId>
 				<configuration>
 					<attachClasses>true</attachClasses>
+				</configuration>
+			</plugin>
+
+			<!-- DEPLOY -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 

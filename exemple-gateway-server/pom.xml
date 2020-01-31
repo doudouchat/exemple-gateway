@@ -102,13 +102,6 @@
 			<artifactId>spring-session-hazelcast</artifactId>
 		</dependency>
 
-		<!-- HAZELCAST -->
-
-		<dependency>
-			<groupId>com.hazelcast</groupId>
-			<artifactId>hazelcast-spring</artifactId>
-		</dependency>
-
 		<!-- CLOUD SECURITY -->
 
 		<dependency>

@@ -87,14 +87,6 @@
 				<version>3.9.0</version>
 			</dependency>
 
-			<!-- HAZELCAST -->
-
-			<dependency>
-				<groupId>com.hazelcast</groupId>
-				<artifactId>hazelcast-spring</artifactId>
-				<version>3.12.5</version>
-			</dependency>
-
 			<!-- YAML -->
 
 			<!-- http://www.snakeyaml.org -->

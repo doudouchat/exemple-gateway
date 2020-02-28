@@ -17,8 +17,12 @@ import com.hazelcast.core.HazelcastInstance;
 @Configuration
 public class GatewaySessionConfiguration {
 
-    @Value("${gateway.hazelcast.port}")
-    private int port;
+    private final int port;
+
+    public GatewaySessionConfiguration(@Value("${gateway.hazelcast.port}") int port) {
+
+        this.port = port;
+    }
 
     @Bean
     public HazelcastInstance hazelcastInstance() {

@@ -20,13 +20,14 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 @ComponentScan(basePackages = "com.exemple.gateway.security")
 public class GatewaySecurityConfiguration extends ResourceServerConfigurerAdapter {
 
-    @Value("${gateway.security.excludes:}")
-    private String[] excludes;
+    private final String[] excludes;
 
     private final TokenExtractor tokenExtractor;
 
-    public GatewaySecurityConfiguration(TokenExtractor tokenExtractor) {
+    public GatewaySecurityConfiguration(TokenExtractor tokenExtractor, @Value("${gateway.security.excludes:}") String... excludes) {
+
         this.tokenExtractor = tokenExtractor;
+        this.excludes = excludes.clone();
     }
 
     @Override

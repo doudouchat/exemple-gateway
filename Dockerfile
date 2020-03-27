@@ -1,4 +1,4 @@
-FROM tomcat:9.0.31-jdk8-openjdk
+FROM tomcat:9.0.33-jdk8-openjdk
 LABEL maintener=EXEMPLE
 RUN rm -rf /usr/local/tomcat/webapps/ROOT
 COPY exemple-gateway-server/target/*.war /usr/local/tomcat/webapps/ROOT.war

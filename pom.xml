@@ -47,6 +47,7 @@
 		<org.slf4j-version>1.7.30</org.slf4j-version>
 		<org.springframework.security-version>5.3.1.RELEASE</org.springframework.security-version>
 		<org.springframework.boot-version>2.2.6.RELEASE</org.springframework.boot-version>
+		<groovy-version>3.0.2</groovy-version>
 
 		<!-- SONAR -->
 
@@ -100,7 +101,7 @@
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy</artifactId>
-				<version>3.0.2</version>
+				<version>${groovy-version}</version>
 			</dependency>
 
 			<!-- COMMONS APACHE -->
@@ -163,14 +164,14 @@
 			<dependency>
 				<groupId>io.rest-assured</groupId>
 				<artifactId>rest-assured</artifactId>
-				<version>4.2.0</version>
+				<version>4.3.0</version>
 				<scope>test</scope>
 			</dependency>
 
 			<dependency>
 				<groupId>io.rest-assured</groupId>
 				<artifactId>rest-assured-all</artifactId>
-				<version>4.2.0</version>
+				<version>4.3.0</version>
 				<scope>test</scope>
 			</dependency>
 

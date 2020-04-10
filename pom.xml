@@ -364,6 +364,10 @@
 								<includes>
 									<include>com.exemple.gateway.*</include>
 								</includes>
+								<excludes>
+									<exclude>*EnhancerBySpringCGLIB*</exclude>
+									<exclude>*FastClassBySpringCGLIB*</exclude>
+								</excludes>
 								<classDumpDir>${project.build.directory}/../target/classes</classDumpDir>
 							</configuration>
 						</execution>

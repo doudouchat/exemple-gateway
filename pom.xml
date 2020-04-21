@@ -377,19 +377,6 @@
 								<goal>report</goal>
 							</goals>
 						</execution>
-						<execution>
-							<id>report-integration</id>
-							<goals>
-								<goal>report-integration</goal>
-							</goals>
-							<configuration>
-								<dataFile>${sonar.jacoco.itReportPath}</dataFile>
-								<outputDirectory>${project.build.directory}/../../target/site/jacoco-it</outputDirectory>
-								<excludes>
-									<exclude>com/exemple/gateway/integration/**</exclude>
-								</excludes>
-							</configuration>
-						</execution>
 					</executions>
 				</plugin>
 

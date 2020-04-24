@@ -22,12 +22,16 @@ public class GatewaySecurityConfiguration extends ResourceServerConfigurerAdapte
 
     private final String[] excludes;
 
+    private final String[] excludesCsrf;
+
     private final TokenExtractor tokenExtractor;
 
-    public GatewaySecurityConfiguration(TokenExtractor tokenExtractor, @Value("${gateway.security.excludes:}") String... excludes) {
+    public GatewaySecurityConfiguration(TokenExtractor tokenExtractor, @Value("${gateway.security.excludes:}") String[] excludes,
+            @Value("${gateway.security.csrf.excludes:}") String[] excludesCsrf) {
 
         this.tokenExtractor = tokenExtractor;
         this.excludes = excludes.clone();
+        this.excludesCsrf = excludesCsrf;
     }
 
     @Override
@@ -51,7 +55,7 @@ public class GatewaySecurityConfiguration extends ResourceServerConfigurerAdapte
 
                 .anyRequest().authenticated().and()
 
-                .csrf().csrfTokenRepository(csrfTokenRepository).ignoringAntMatchers("/ExempleAuthorization/oauth/**")
+                .csrf().csrfTokenRepository(csrfTokenRepository).ignoringAntMatchers(excludesCsrf)
                 .ignoringRequestMatchers(checkToken::hasBearerToken);
     }
 

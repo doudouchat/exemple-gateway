@@ -3,6 +3,8 @@ gateway:
       port: 5075
    security: 
       excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /ExempleAuthorization/oauth/.*, /ExempleService/ws/.*/schemas/.*
+      csrf:
+         excludes: /ExempleAuthorization/oauth/**
 security:
    oauth2:
       client:

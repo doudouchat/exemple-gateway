@@ -2,12 +2,11 @@ gateway:
    hazelcast:
       port: ${hazelcast.port}
    security: 
-      excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /ExempleAuthorization/oauth/.*
+      excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /.*/oauth/.*
+      csrf:
+         excludes: /Test/oauth/**
 security:
    oauth2:
-      client:
-         clientId: resource
-         clientSecret: secret
       resource:
          jwt:
             keyValue: abc

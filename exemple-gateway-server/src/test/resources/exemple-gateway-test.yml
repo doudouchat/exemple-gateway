@@ -3,6 +3,8 @@ gateway:
       port: ${hazelcast.port}
    security: 
       excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /ExempleAuthorization/oauth/.*
+      csrf:
+         excludes: /ExempleAuthorization/oauth/**
 zuul:
    routes:
       api:

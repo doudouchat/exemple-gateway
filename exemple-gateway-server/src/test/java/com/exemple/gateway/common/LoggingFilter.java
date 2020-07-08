@@ -40,7 +40,7 @@ public class LoggingFilter implements Filter {
 
         try {
             String log = RequestPrinter.print(requestSpec, requestSpec.getMethod(), requestSpec.getURI(), LogDetail.ALL, Collections.emptySet(),
-                    new PrintStream(new NullOutputStream(), true, StandardCharsets.UTF_8.name()), true);
+                    new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM, true, StandardCharsets.UTF_8.name()), true);
             this.log.debug("Request {}\n{}", counter, log);
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException(e);
@@ -49,8 +49,9 @@ public class LoggingFilter implements Filter {
         Response response = ctx.next(requestSpec, responseSpec);
 
         try {
-            String log = ResponsePrinter.print(response, response, new PrintStream(new NullOutputStream(), true, StandardCharsets.UTF_8.name()),
-                    LogDetail.ALL, true, Collections.emptySet());
+            String log = ResponsePrinter.print(response, response,
+                    new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM, true, StandardCharsets.UTF_8.name()), LogDetail.ALL, true,
+                    Collections.emptySet());
             this.log.debug("Response {}\n{}", counter, log);
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException(e);

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.Header;
@@ -70,9 +71,19 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
     private Cookie sessionId;
     private Cookie xsrfToken;
 
+    private static String ACCESS_TOKEN;
+    private static String REFRESH_TOKEN;
+
     static {
 
         HMAC256_ALGORITHM = Algorithm.HMAC256("abc");
+
+        ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
+                .withExpiresAt(Date.from(Instant.now().plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
+                .sign(HMAC256_ALGORITHM);
+
+        REFRESH_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
+                .sign(HMAC256_ALGORITHM);
 
     }
 
@@ -89,16 +100,9 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
     @Test
     public void token() throws JsonProcessingException {
 
-        String accessToken = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
-                .withExpiresAt(Date.from(Instant.now().plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
-                .sign(HMAC256_ALGORITHM);
-
-        String refreshToken = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
-                .withArrayClaim("scope", new String[] { "account:read" }).sign(HMAC256_ALGORITHM);
-
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("access_token", accessToken);
-        responseBody.put("refresh_token", refreshToken);
+        responseBody.put("access_token", ACCESS_TOKEN);
+        responseBody.put("refresh_token", REFRESH_TOKEN);
         responseBody.put("scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
@@ -126,6 +130,35 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
                         .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
 
         Response response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
+                .header("X-XSRF-TOKEN", xsrfToken.getValue()).post(restTemplate.getRootUri() + "/ExempleService/account");
+
+        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.jsonPath().get("name"), is("jean"));
+
+    }
+
+    @Test
+    public void securitySuccessWithSessionIdInHeader() throws JsonProcessingException {
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("access_token", ACCESS_TOKEN);
+        responseBody.put("refresh_token", REFRESH_TOKEN);
+        responseBody.put("scope", "account:read");
+
+        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
+                .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+
+        Response response = requestSpecification.cookie("JSESSIONID", UUID.randomUUID())
+                .post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+
+        Cookie sessionId = response.getDetailedCookie("JSESSIONID");
+        Cookie xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
+
+        apiClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleService/account"))
+                .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
+                        .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+
+        response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
                 .header("X-XSRF-TOKEN", xsrfToken.getValue()).post(restTemplate.getRootUri() + "/ExempleService/account");
 
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));

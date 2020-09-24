@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.exemple.service.api.integration.core.JsonRestTemplate;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
@@ -27,7 +27,7 @@ public class TestCookieIT {
     private Cookie xsrfToken;
 
     @Test
-    public void token() throws JsonProcessingException {
+    public void token() {
 
         Map<String, String> params = new HashMap<>();
         params.put("grant_type", "client_credentials");
@@ -64,6 +64,36 @@ public class TestCookieIT {
                 .body(body).post(URL);
 
         assertThat(response.getStatusCode(), is(HttpStatus.CREATED.value()));
+
+    }
+
+    @DataProvider(name = "postFailures")
+    private Object[][] postFailures() {
+
+        return new Object[][] {
+                //
+                { "bad jsessionId", xsrfToken.getValue(), HttpStatus.UNAUTHORIZED },
+                //
+                { sessionId.getValue(), "bad xrsf token", HttpStatus.FORBIDDEN }
+
+        };
+    }
+
+    @Test(dependsOnMethods = "token", dataProvider = "postFailures")
+    public void postFailure(String jsessionId, String xrsfToken, HttpStatus expectedStatus) {
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("value", UUID.randomUUID());
+
+        Response response = JsonRestTemplate.given()
+
+                .cookie("JSESSIONID", jsessionId).cookie("XSRF-TOKEN", xrsfToken).queryParam("debug", "true")
+
+                .header("X-XSRF-TOKEN", xsrfToken.getValue())
+
+                .body(body).post(URL);
+
+        assertThat(response.getStatusCode(), is(expectedStatus.value()));
 
     }
 

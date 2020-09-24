@@ -23,9 +23,8 @@ public class SessionHelper {
 
     public Optional<Pair<Cookie, Session>> extractSessionCookie(HttpServletRequest request) {
 
-        return Arrays.stream((Cookie[]) ObjectUtils.defaultIfNull(request.getCookies(), new Cookie[0]))
-                .filter(cookie -> "JSESSIONID".equals(cookie.getName())).map(cookie -> Pair.of(cookie, sessionRepository.findById(cookie.getValue())))
-                .filter(p -> p.getRight() != null).findFirst();
+        return Arrays.stream(ObjectUtils.defaultIfNull(request.getCookies(), new Cookie[0])).filter(cookie -> "JSESSIONID".equals(cookie.getName()))
+                .map(cookie -> Pair.of(cookie, sessionRepository.findById(cookie.getValue()))).filter(p -> p.getRight() != null).findFirst();
     }
 
 }

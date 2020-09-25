@@ -50,6 +50,22 @@ public class TestCookieIT {
     }
 
     @Test(dependsOnMethods = "token")
+    public void retryToken() {
+
+        Map<String, String> params = new HashMap<>();
+        params.put("grant_type", "client_credentials");
+
+        Response response = JsonRestTemplate.given(JsonRestTemplate.APPLICATION_URL, ContentType.URLENC)
+
+                .cookie("JSESSIONID", sessionId.getValue())
+
+                .auth().basic("resource", "secret").formParams(params).post("/oauth/token");
+
+        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+
+    }
+
+    @Test(dependsOnMethods = "token")
     public void post() {
 
         Map<String, Object> body = new HashMap<>();

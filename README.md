@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/doudouchat/exemple-gateway.svg?branch=master)](https://travis-ci.org/doudouchat/exemple-gateway)
+[![Build Status](https://travis-ci.com/doudouchat/exemple-gateway.svg?branch=master)](https://travis-ci.com/doudouchat/exemple-gateway)
 [![codecov](https://codecov.io/gh/doudouchat/exemple-gateway/graph/badge.svg)](https://codecov.io/gh/doudouchat/exemple-gateway) 
 
 # exemple-gateway

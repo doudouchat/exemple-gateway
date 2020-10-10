@@ -17,7 +17,7 @@ api:
    ribbon:
       listOfServers: http://172.17.0.1:8080/ExempleService
       ConnectTimeout: 3000
-      ReadTimeout: 10000
+      ReadTimeout: 60000
 authorization:
    ribbon:
       listOfServers: http://172.17.0.1:8084/ExempleAuthorization

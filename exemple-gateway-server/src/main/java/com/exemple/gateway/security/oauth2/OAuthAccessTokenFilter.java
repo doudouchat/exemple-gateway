@@ -72,11 +72,11 @@ public class OAuthAccessTokenFilter extends ZuulFilter {
 
         try {
 
+            cleanSessionCookie(context);
+
             Pair<Cookie, Session> cookieAndSession = sessionHelper.extractSessionCookie(context.getRequest()).orElseGet(() -> {
                 Session session = repository.createSession();
-                Cookie sessionCookie = createSessionCookie(context, session.getId());
-                context.getResponse().addCookie(sessionCookie);
-                return Pair.of(sessionCookie, session);
+                return Pair.of(createSessionCookie(context, session.getId()), session);
             });
 
             Session session = cookieAndSession.getRight();
@@ -90,6 +90,8 @@ public class OAuthAccessTokenFilter extends ZuulFilter {
             saveMaxAge(sessionCookie, authorizationNode);
 
             context.setResponseBody(MAPPER.writeValueAsString(authorizationNode));
+
+            context.getResponse().addCookie(sessionCookie);
 
         } catch (IOException e) {
 
@@ -109,6 +111,17 @@ public class OAuthAccessTokenFilter extends ZuulFilter {
         LOG.debug("new session cookie {}", sessionId);
 
         return sessionCookie;
+    }
+
+    private void cleanSessionCookie(RequestContext context) {
+
+        sessionHelper.extractAllSessionCookies(context.getRequest()).forEach((Cookie cookie) -> {
+            repository.deleteById(cookie.getValue());
+            cookie.setValue(null);
+            cookie.setMaxAge(0);
+            context.getResponse().addCookie(cookie);
+
+        });
     }
 
     private static JsonNode extractAuthorizationNode(RequestContext context) throws IOException {

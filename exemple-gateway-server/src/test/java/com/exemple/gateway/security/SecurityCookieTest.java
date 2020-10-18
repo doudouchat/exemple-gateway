@@ -1,10 +1,13 @@
 package com.exemple.gateway.security;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
@@ -73,13 +76,16 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
 
     private static String ACCESS_TOKEN;
     private static String REFRESH_TOKEN;
+    private static Clock clock;
 
     static {
+
+        clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
         HMAC256_ALGORITHM = Algorithm.HMAC256("abc");
 
         ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
-                .withExpiresAt(Date.from(Instant.now().plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
+                .withExpiresAt(Date.from(Instant.now(clock).plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
                 .sign(HMAC256_ALGORITHM);
 
         REFRESH_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
@@ -117,7 +123,10 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
 
         sessionId = response.getDetailedCookie("JSESSIONID");
         xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
+
         assertThat(sessionId.isHttpOnly(), is(true));
+        assertThat(sessionId.getExpiryDate(), is(notNullValue()));
+        assertThat(sessionId.getMaxAge(), is(greaterThan(0)));
         assertThat(xsrfToken.isHttpOnly(), is(false));
 
     }

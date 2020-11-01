@@ -22,7 +22,7 @@ public class GatewayConfiguration {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("*").allowedHeaders("*").allowedMethods("GET", "POST", "PUT", "HEAD", "PATCH")
+                registry.addMapping("/**").allowedOriginPatterns("*").allowedHeaders("*").allowedMethods("GET", "POST", "PUT", "HEAD", "PATCH")
                         .allowCredentials(true);
             }
         };

@@ -26,7 +26,41 @@
 					<url>https://maven.pkg.github.com/doudouchat/exemple-gateway
 					</url>
 				</repository>
+				<repository>
+					<id>repository.spring.milestone</id>
+					<name>Spring Milestone Repository</name>
+					<url>https://repo.spring.io/milestone</url>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</repository>
 			</repositories>
+			<pluginRepositories>
+				<pluginRepository>
+					<id>central</id>
+					<url>https://repo1.maven.org/maven2</url>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</pluginRepository>
+				<pluginRepository>
+					<id>repository.spring.milestone</id>
+					<name>Spring Milestone Repository</name>
+					<url>https://repo.spring.io/milestone</url>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</pluginRepository>
+			</pluginRepositories>
 		</profile>
 
 	</profiles>

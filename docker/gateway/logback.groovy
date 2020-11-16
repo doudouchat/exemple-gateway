@@ -7,7 +7,7 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 
 scan("30 seconds")
 
-def USER_HOME = "/usr/local/tomcat"
+def USER_HOME = "/tmp"
 def LOGS_FOLDER = "${USER_HOME}/logs"
 def LOG_ARCHIVE = "${LOGS_FOLDER}/archive"
 def LOGS_FILENAME = "exemple_gateway"
@@ -38,6 +38,7 @@ appender("archive", RollingFileAppender) {
 }
 
 logger("org.springframework.boot", INFO)
+logger("org.springframework.cloud", DEBUG)
 logger("com.exemple", DEBUG)
 
 root(WARN, ["console", "archive"])

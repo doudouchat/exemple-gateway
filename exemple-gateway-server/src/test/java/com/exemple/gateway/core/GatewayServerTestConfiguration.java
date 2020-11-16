@@ -3,12 +3,14 @@ package com.exemple.gateway.core;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 
-@Configuration
-public class GatewayServerTestConfiguration {
+@SpringBootTest(classes = GatewayTestConfiguration.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+public class GatewayServerTestConfiguration extends AbstractTestNGSpringContextTests {
 
     static {
         System.setProperty("mockserver.logLevel", "DEBUG");
@@ -20,29 +22,33 @@ public class GatewayServerTestConfiguration {
     @Value("${authorization.port}")
     private int authorizationPort;
 
-    @Bean(destroyMethod = "stop")
-    public ClientAndServer apiServer() {
+    private ClientAndServer apiServer;
 
-        return ClientAndServer.startClientAndServer(apiPort);
+    protected MockServerClient apiClient;
+
+    private ClientAndServer authorizationServer;
+
+    protected MockServerClient authorizationClient;
+
+    @BeforeClass
+    public final void apiServer() {
+        this.apiServer = ClientAndServer.startClientAndServer(apiPort);
+        this.apiClient = new MockServerClient("localhost", apiPort);
     }
 
-    @Bean(destroyMethod = "stop")
-    public ClientAndServer authorizationServer() {
-        return ClientAndServer.startClientAndServer(authorizationPort);
+    @BeforeClass
+    public final void authorizationServer() {
+        this.authorizationServer = ClientAndServer.startClientAndServer(authorizationPort);
+        this.authorizationClient = new MockServerClient("localhost", authorizationPort);
     }
 
-    @Bean(destroyMethod = "stop")
-    @DependsOn("apiServer")
-    public MockServerClient apiClient() {
+    @AfterClass
+    public final void closeMockServer() {
 
-        return new MockServerClient("localhost", apiPort);
-    }
-
-    @Bean(destroyMethod = "stop")
-    @DependsOn("authorizationServer")
-    public MockServerClient authorizationClient() {
-
-        return new MockServerClient("localhost", authorizationPort);
+        this.apiServer.close();
+        this.apiServer.hasStopped();
+        this.authorizationServer.close();
+        this.authorizationServer.hasStopped();
     }
 
 }

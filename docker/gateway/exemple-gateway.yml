@@ -1,35 +1,44 @@
+logging:
+   config: file:/usr/local/etc/gateway/logback.groovy
 gateway:
    hazelcast:
       port: 5075
-   security: 
-      excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /ExempleAuthorization/oauth/.*, /ExempleService/ws/.*/schemas/.*
+   security:
+      excludes: /ExempleService, /ExempleService/, /*/info, /*/*/info, /*/health, /*/*/health, /*/ws/v1/schemas/**, /*/*/*/openapi.json, /ExempleAuthorization/oauth/*, /*/.well-known/jwks.json
       csrf:
-         excludes: /ExempleAuthorization/oauth/**
-security:
-   oauth2:
-      client:
-         clientId: resource
-         clientSecret: secret
-      resource:
-         jwt:
-            keyUri: http://172.17.0.1:8084/ExempleAuthorization/oauth/token_key
-api:
-   ribbon:
-      listOfServers: http://172.17.0.1:8080/ExempleService
-      ConnectTimeout: 3000
-      ReadTimeout: 60000
-authorization:
-   ribbon:
-      listOfServers: http://172.17.0.1:8084/ExempleAuthorization
-      ConnectTimeout: 3000
-      ReadTimeout: 3000
-zuul:
-   routes:
-      api:
-         path: /ExempleService/**
-         sensitiveHeaders: null
-         stripPrefix: false
-      authorization:
-         path: /ExempleAuthorization/**
-         sensitiveHeaders: null
-         stripPrefix: false
+         excludes: /ExempleAuthorization/oauth/*
+spring:
+   security:
+      oauth2:
+         resourceserver:
+            jwt:
+               jwk-set-uri: http://172.17.0.1:8084/ExempleAuthorization/.well-known/jwks.json
+   cloud:
+      gateway:
+         httpclient:
+            connect-timeout: 1000
+            response-timeout: 30s
+         routes:
+         -  id: api-service
+            uri: http://172.17.0.1:8080/ExempleService
+            predicates:
+            - Path=/ExempleService/**
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - AccessTokenRelay=
+            - RemoveRequestHeader=cookie
+            - RemoveRequestHeader=x-xsrf-token
+         -  id: authorization-service-token
+            uri: http://172.17.0.1:8084/ExempleAuthorization
+            predicates:
+            - Path=/ExempleAuthorization/oauth/token
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - OAuthAccessTokenFilter=
+            - AddCsrfToken=
+         -  id: authorization-service
+            uri: http://172.17.0.1:8084/ExempleAuthorization
+            predicates:
+            - Path=/ExempleAuthorization/**
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,

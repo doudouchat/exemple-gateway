@@ -1,0 +1,5 @@
+version: "3.5"
+services:
+  gateway:
+    environment:
+    - "--spring.profiles.active=browser"

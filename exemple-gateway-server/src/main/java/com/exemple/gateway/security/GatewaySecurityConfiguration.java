@@ -1,71 +1,85 @@
 package com.exemple.gateway.security;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor;
-import org.springframework.security.oauth2.provider.authentication.TokenExtractor;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
+import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.security.web.server.csrf.CsrfWebFilter;
+import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 
 @Configuration
-@EnableResourceServer
 @ComponentScan(basePackages = "com.exemple.gateway.security")
-public class GatewaySecurityConfiguration extends ResourceServerConfigurerAdapter {
+public class GatewaySecurityConfiguration {
 
     private final String[] excludes;
 
-    private final String[] excludesCsrf;
+    private final ServerAuthenticationConverter tokenExtractor;
 
-    private final TokenExtractor tokenExtractor;
-
-    public GatewaySecurityConfiguration(TokenExtractor tokenExtractor, @Value("${gateway.security.excludes:}") String[] excludes,
-            @Value("${gateway.security.csrf.excludes:}") String[] excludesCsrf) {
+    public GatewaySecurityConfiguration(ServerAuthenticationConverter tokenExtractor, @Value("${gateway.security.excludes:}") String[] excludes) {
 
         this.tokenExtractor = tokenExtractor;
         this.excludes = excludes.clone();
-        this.excludesCsrf = excludesCsrf;
     }
 
-    @Override
-    public void configure(ResourceServerSecurityConfigurer config) {
-        config.resourceId(null).tokenExtractor(tokenExtractor);
+    @Bean
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, Customizer<CsrfSpec> csrfCustomizer) {
+
+        return http
+
+                .cors().and()
+
+                .authorizeExchange().pathMatchers(this.excludes).permitAll()
+
+                .anyExchange().authenticated().and()
+
+                .csrf(csrfCustomizer)
+
+                .oauth2ResourceServer().jwt().and().bearerTokenConverter(tokenExtractor).and()
+
+                .build();
     }
 
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Profile("browser")
+    public static class GatewaySecurityConfigurationCsrf {
 
-        CookieCsrfTokenRepository csrfTokenRepository = new CookieCsrfTokenRepository();
-        csrfTokenRepository.setCookieHttpOnly(false);
+        private final ServerWebExchangeMatcher requireCsrfProtectionMatcher;
 
-        CheckTokenExtractor checkToken = new CheckTokenExtractor();
+        public GatewaySecurityConfigurationCsrf(@Value("${gateway.security.csrf.excludes:**}") String[] excludesCsrf) {
 
-        http.cors().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER).and()
-
-                .authorizeRequests()
-
-                .regexMatchers(excludes).permitAll()
-
-                .anyRequest().authenticated().and()
-
-                .csrf().csrfTokenRepository(csrfTokenRepository).ignoringAntMatchers(excludesCsrf)
-                .ignoringRequestMatchers(checkToken::hasBearerToken);
-    }
-
-    private static class CheckTokenExtractor extends BearerTokenExtractor {
-
-        public boolean hasBearerToken(HttpServletRequest request) {
-
-            return StringUtils.isNotBlank(this.extractToken(request));
-
+            requireCsrfProtectionMatcher = new AndServerWebExchangeMatcher(CsrfWebFilter.DEFAULT_CSRF_MATCHER,
+                    new NegatedServerWebExchangeMatcher(new OrServerWebExchangeMatcher(
+                            Arrays.stream(excludesCsrf).map(PathPatternParserServerWebExchangeMatcher::new).collect(Collectors.toList()))));
         }
 
+        @Bean
+        public Customizer<CsrfSpec> csrf() {
+
+            return (CsrfSpec csrf) -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                    .requireCsrfProtectionMatcher(requireCsrfProtectionMatcher);
+        }
+    }
+
+    @Profile("!browser")
+    public static class GatewaySecurityConfigurationDisableCsrf {
+
+        @Bean
+        public Customizer<CsrfSpec> csrf() {
+
+            return CsrfSpec::disable;
+        }
     }
 }

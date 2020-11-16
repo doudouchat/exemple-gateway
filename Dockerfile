@@ -1,7 +1,4 @@
-FROM tomcat:9.0.40-jdk8-openjdk
+FROM openjdk:8-jdk-buster
 LABEL maintener=EXEMPLE
-RUN rm -rf /usr/local/tomcat/webapps/ROOT
-COPY exemple-gateway-server/target/*.war /usr/local/tomcat/webapps/ROOT.war
-COPY exemple-gateway-server/src/main/conf/context.xml /usr/local/tomcat/conf/context.xml
-COPY exemple-gateway-server/src/main/conf/setenv.sh /usr/local/tomcat/bin/setenv.sh
-CMD ["catalina.sh", "run"]
+COPY exemple-gateway-server/target/*.jar exemple-gateway-server.jar
+ENTRYPOINT ["java","-jar","exemple-gateway-server.jar"]

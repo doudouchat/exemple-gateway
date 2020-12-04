@@ -1,13 +1,43 @@
-security:
-   oauth2:
-      resource:
-         jwt:
-            keyValue: abc
+gateway:
+   hazelcast:
+      port: ${hazelcast.port}
+   security:
+      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /ExempleAuthorization/oauth/*
+      csrf:
+         excludes: /ExempleAuthorization/oauth/*
+spring:
+   security:
+      oauth2:
+         resourceserver:
+            jwt:
+               public-key-location: classpath:public_key
+   cloud:
+      gateway:
+         routes:
+         -  id: api-service
+            uri: http://localhost:${api.port}
+            predicates:
+            - Path=/ExempleService/**
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - AccessTokenRelay=
+         -  id: authorization-service-token
+            uri: http://localhost:${authorization.port}
+            predicates:
+            - Path=/ExempleAuthorization/oauth/token
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - OAuthAccessTokenFilter=
+            - AddCsrfToken=
+         -  id: authorization-service
+            uri: http://localhost:${authorization.port}
+            predicates:
+            - Path=/ExempleAuthorization/**
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
 api:
    port: ${api.port}
-   ribbon:
-      listOfServers: http://localhost:${api.port}
 authorization:
    port: ${authorization.port}
-   ribbon:
-      listOfServers: http://localhost:${authorization.port}
+public_key: classpath:public_key
+private_key: classpath:private_key

@@ -1,48 +1,62 @@
 package com.exemple.gateway.core;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-
-import org.osjava.sj.SimpleJndi;
-import org.osjava.sj.loader.JndiLoader;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.jndi.JndiObjectFactoryBean;
 
-import com.exemple.gateway.core.property.GatewayPropertyConfiguration;
+import com.auth0.jwt.algorithms.Algorithm;
 
 @Configuration
 @Import({ GatewayConfiguration.class })
 @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
-public class GatewayTestConfiguration extends GatewayPropertyConfiguration {
+public class GatewayTestConfiguration {
 
     @Bean
-    public InitialContext initialContext() throws NamingException, IOException {
+    public Algorithm algo() throws GeneralSecurityException, IOException {
 
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.osjava.sj.SimpleContextFactory");
-        System.setProperty(SimpleJndi.ENC, "java:comp");
-        System.setProperty(JndiLoader.COLON_REPLACE, "--");
-        System.setProperty(JndiLoader.DELIMITER, "/");
-        System.setProperty(SimpleJndi.SHARED, "true");
-        System.setProperty(SimpleJndi.ROOT, new ClassPathResource("java--comp").getURL().getFile());
-
-        return new InitialContext();
+        return Algorithm.RSA256(readPublicKey(), (RSAPrivateKey) readPrivateKey());
 
     }
 
-    @Bean
-    @DependsOn("initialContext")
-    @Override
-    public JndiObjectFactoryBean jndiObjectFactoryBean() {
+    private static RSAPublicKey readPublicKey() throws GeneralSecurityException, IOException {
 
-        return super.jndiObjectFactoryBean();
+        String key = new String(Files.readAllBytes(new ClassPathResource("public_key").getFile().toPath()), StandardCharsets.UTF_8);
+
+        String publicKeyPEM = key.replace("-----BEGIN PUBLIC KEY-----", "").replaceAll(System.lineSeparator(), "").replace("-----END PUBLIC KEY-----",
+                "");
+
+        byte[] encoded = Base64.decodeBase64(publicKeyPEM);
+
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
+        return (RSAPublicKey) keyFactory.generatePublic(keySpec);
+    }
+
+    private RSAPrivateKey readPrivateKey() throws GeneralSecurityException, IOException {
+
+        String key = new String(Files.readAllBytes(new ClassPathResource("private_key").getFile().toPath()), StandardCharsets.UTF_8);
+
+        String privateKeyPEM = key.replace("-----BEGIN PRIVATE KEY-----", "").replaceAll(System.lineSeparator(), "")
+                .replace("-----END PRIVATE KEY-----", "");
+
+        byte[] encoded = Base64.decodeBase64(privateKeyPEM);
+
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
+        return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
     }
 }

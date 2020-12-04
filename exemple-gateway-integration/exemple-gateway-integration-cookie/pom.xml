@@ -1,0 +1,142 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>exemple</groupId>
+		<artifactId>exemple-gateway-integration</artifactId>
+		<version>2.0.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>exemple-gateway-integration-cookie</artifactId>
+
+	<dependencies>
+
+		<!-- API INTEGRATION -->
+
+		<dependency>
+			<groupId>exemple</groupId>
+			<artifactId>exemple-service-api-integration</artifactId>
+		</dependency>
+
+		<!-- JWT TOKEN -->
+
+		<dependency>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+		</dependency>
+
+		<!-- HAMCREST -->
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+		</dependency>
+
+		<!-- TEST -->
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+			</testResource>
+		</testResources>
+
+	</build>
+
+	<profiles>
+
+		<profile>
+			<id>gateway</id>
+
+			<dependencies>
+
+				<dependency>
+					<groupId>${project.groupId}</groupId>
+					<artifactId>exemple-gateway-server</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+
+				<dependency>
+					<groupId>${project.groupId}</groupId>
+					<artifactId>exemple-gateway-integration-resource</artifactId>
+					<version>${project.version}</version>
+					<type>war</type>
+				</dependency>
+
+			</dependencies>
+
+			<build>
+
+				<plugins>
+
+					<!-- CARGO -->
+					<plugin>
+						<groupId>org.codehaus.cargo</groupId>
+						<artifactId>cargo-maven2-plugin</artifactId>
+						<configuration>
+							<deployables>
+								<deployable>
+									<groupId>${project.groupId}</groupId>
+									<artifactId>exemple-gateway-integration-resource</artifactId>
+									<type>war</type>
+									<properties>
+										<context>/${test.contextpath}</context>
+									</properties>
+									<pingUrlPath>/${test.contextpath}/actuator/health</pingUrlPath>
+								</deployable>
+							</deployables>
+							<configuration>
+								<properties>
+									<cargo.resource.resource.spring>
+										cargo.resource.name=spring.config.location|
+										cargo.resource.type=java.lang.String|
+										cargo.resource.parameters=factory=com.exemple.service.api.integration.core.PrimitivesAndStringFactory;value=${gateway.path}
+									</cargo.resource.resource.spring>
+								</properties>
+							</configuration>
+						</configuration>
+					</plugin>
+
+					<!-- SPRING BOOT -->
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<configuration>
+							<profiles>browser</profiles>
+						</configuration>
+					</plugin>
+
+				</plugins>
+
+			</build>
+
+		</profile>
+
+		<profile>
+			<id>it</id>
+
+			<build>
+
+				<plugins>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+
+	</profiles>
+
+</project>

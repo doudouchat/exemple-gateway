@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.is;
 
 import java.util.Collections;
 
-import org.mockserver.client.MockServerClient;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -13,12 +12,8 @@ import org.mockserver.model.JsonBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -28,27 +23,14 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
-@SpringBootTest(classes = { GatewayTestConfiguration.class, GatewayServerTestConfiguration.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
-public class RoutesTest extends AbstractTestNGSpringContextTests {
+public class RoutesTest extends GatewayServerTestConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(RoutesTest.class);
 
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Value("${api.port}")
-    private int apiPort;
-
-    @Value("${authorization.port}")
-    private int authorizationPort;
-
     private RequestSpecification requestSpecification;
-
-    @Autowired
-    private MockServerClient apiClient;
-
-    @Autowired
-    private MockServerClient authorizationClient;
 
     @BeforeMethod
     private void before() {

@@ -1,0 +1,38 @@
+logging:
+   config: file:${application.log.file}
+gateway:
+   hazelcast:
+      port: ${hazelcast.port}
+   security:
+      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /*/oauth/*
+      csrf:
+         excludes: /*/oauth/*
+spring:
+   security:
+      oauth2:
+         resourceserver:
+            jwt:
+               public-key-location: file:${project.parent.basedir}/exemple-gateway-integration-resource/src/main/resources/public_key
+   cloud:
+      gateway:
+         httpclient:
+            connect-timeout: 1000
+            response-timeout: 10s
+         routes:
+         -  id: authorization-service-token
+            uri: ${test.host}:${test.port}/${test.contextpath}
+            predicates:
+            - Path=/${test.contextpath}/oauth/token
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - OAuthAccessTokenFilter=
+            - AddCsrfToken=
+         -  id: exemple
+            uri: ${test.host}:${test.port}/${test.contextpath}
+            predicates:
+            - Path=/${test.contextpath}/**
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - AccessTokenRelay=
+            - RemoveRequestHeader=cookie
+            - RemoveRequestHeader=x-xsrf-token

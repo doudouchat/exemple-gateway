@@ -1,60 +1,39 @@
 package com.exemple.gateway.security.token;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor;
-import org.springframework.security.oauth2.provider.authentication.TokenExtractor;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.web.server.ServerBearerTokenAuthenticationConverter;
+import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.exemple.gateway.security.helper.SessionHelper;
 
-@Component
-public class CookieTokenExtractor implements TokenExtractor {
+import reactor.core.publisher.Mono;
 
-    private final TokenExtractor defaultTokenExtractor;
+@Component
+public class CookieTokenExtractor implements ServerAuthenticationConverter {
+
+    private final ServerAuthenticationConverter defaultTokenExtractor;
 
     private final SessionHelper sessionHelper;
 
-    private final List<RequestMatcher> excludes;
+    public CookieTokenExtractor(SessionHelper sessionHelper) {
 
-    public CookieTokenExtractor(SessionHelper sessionHelper, @Value("${gateway.security.excludes:}") String[] excludes) {
-
-        this.defaultTokenExtractor = new BearerTokenExtractor();
+        this.defaultTokenExtractor = new ServerBearerTokenAuthenticationConverter();
         this.sessionHelper = sessionHelper;
-        this.excludes = Arrays.stream(excludes).map(exclude -> new RegexRequestMatcher(exclude, null)).collect(Collectors.toList());
     }
 
     @Override
-    public Authentication extract(HttpServletRequest request) {
+    public Mono<Authentication> convert(ServerWebExchange exchange) {
 
-        if (isNonAuthenticatedRequest(request)) {
-            return null;
-        }
+        Supplier<Mono<Authentication>> extractCookie = () -> Mono.justOrEmpty(sessionHelper.extractSessionCookie(exchange.getRequest())
+                .map(Pair::getValue).map(session -> new BearerTokenAuthenticationToken(session.getAttribute("access_token"))));
 
-        Authentication authentication = this.defaultTokenExtractor.extract(request);
-        if (authentication == null) {
-
-            authentication = sessionHelper.extractSessionCookie(request).map(Pair::getValue)
-                    .map(session -> new PreAuthenticatedAuthenticationToken(session.getAttribute("access_token"), "")).orElse(null);
-
-        }
-
-        return authentication;
-    }
-
-    private boolean isNonAuthenticatedRequest(HttpServletRequest request) {
-
-        return this.excludes.stream().anyMatch(exclude -> exclude.matches(request));
+        return this.defaultTokenExtractor.convert(exchange).switchIfEmpty(Mono.defer(extractCookie));
     }
 
 }

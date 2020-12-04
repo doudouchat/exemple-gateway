@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.mockserver.client.MockServerClient;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -23,20 +22,18 @@ import org.mockserver.model.JsonBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.springframework.test.context.ActiveProfiles;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.exemple.gateway.common.LoggingFilter;
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
-import com.exemple.gateway.core.GatewayTestConfiguration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -45,8 +42,8 @@ import io.restassured.http.Cookie;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
-@SpringBootTest(classes = { GatewayTestConfiguration.class, GatewayServerTestConfiguration.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
-public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
+@ActiveProfiles("browser")
+public class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(SecurityCookieTest.class);
 
@@ -55,41 +52,35 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Value("${api.port}")
-    private int apiPort;
-
-    @Value("${authorization.port}")
-    private int authorizationPort;
-
     private RequestSpecification requestSpecification;
 
     @Autowired
-    private MockServerClient apiClient;
-
-    @Autowired
-    private MockServerClient authorizationClient;
-
-    private static final Algorithm HMAC256_ALGORITHM;
+    private Algorithm algo;
 
     private Cookie sessionId;
     private Cookie xsrfToken;
 
-    private static String ACCESS_TOKEN;
-    private static String REFRESH_TOKEN;
-    private static Clock clock;
+    private String ACCESS_TOKEN;
+    private String DEPRECATED_ACCESS_TOKEN;
 
-    static {
+    private String REFRESH_TOKEN;
+    private Clock clock;
+
+    @BeforeClass
+    public void init() {
 
         clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
-        HMAC256_ALGORITHM = Algorithm.HMAC256("abc");
-
         ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
                 .withExpiresAt(Date.from(Instant.now(clock).plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
-                .sign(HMAC256_ALGORITHM);
+                .sign(algo);
+
+        DEPRECATED_ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
+                .withExpiresAt(Date.from(Instant.now(clock).minus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
+                .sign(algo);
 
         REFRESH_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
-                .sign(HMAC256_ALGORITHM);
+                .sign(algo);
 
     }
 
@@ -134,7 +125,9 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
     @Test(dependsOnMethods = "token")
     public void securitySuccess() {
 
-        apiClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleService/account"))
+        apiClient
+                .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN)
+                        .withPath("/ExempleService/account"))
                 .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
                         .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
 
@@ -163,9 +156,13 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
         Cookie sessionId = response.getDetailedCookie("JSESSIONID");
         Cookie xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
 
-        apiClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleService/account"))
+        apiClient
+                .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN)
+                        .withPath("/ExempleService/account"))
                 .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
                         .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+
+        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
 
         response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
                 .header("X-XSRF-TOKEN", xsrfToken.getValue()).post(restTemplate.getRootUri() + "/ExempleService/account");
@@ -175,17 +172,35 @@ public class SecurityCookieTest extends AbstractTestNGSpringContextTests {
 
     }
 
-    @Test(dependsOnMethods = "token")
-    public void securityFailure() {
+    @DataProvider(name = "securityFailure")
+    private Object[][] securityFailure() {
 
-        apiClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleService/account"))
-                .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
-                        .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+        return new Object[][] {
 
-        Response response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
-                .header("X-XSRF-TOKEN", "toto").post(restTemplate.getRootUri() + "/ExempleService/account");
+                { DEPRECATED_ACCESS_TOKEN, xsrfToken.getValue(), HttpStatus.UNAUTHORIZED },
 
-        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN.value()));
+                { ACCESS_TOKEN, "toto", HttpStatus.FORBIDDEN } };
+    }
+
+    @Test(dataProvider = "securityFailure", dependsOnMethods = "token")
+    public void securityFailure(String accessToken, String csrfToken, HttpStatus expectedHttpStatus) throws JsonProcessingException {
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("access_token", accessToken);
+        responseBody.put("refresh_token", REFRESH_TOKEN);
+        responseBody.put("scope", "account:read");
+
+        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
+                .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+
+        Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+
+        Cookie sessionId = response.getDetailedCookie("JSESSIONID");
+
+        response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
+                .header("X-XSRF-TOKEN", csrfToken).post(restTemplate.getRootUri() + "/ExempleService/account");
+
+        assertThat(response.getStatusCode(), is(expectedHttpStatus.value()));
 
     }
 

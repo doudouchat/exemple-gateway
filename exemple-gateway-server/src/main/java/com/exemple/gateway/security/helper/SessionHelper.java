@@ -1,18 +1,18 @@
 package com.exemple.gateway.security.helper;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 @Component
 public class SessionHelper {
@@ -23,17 +23,17 @@ public class SessionHelper {
         this.sessionRepository = sessionRepository;
     }
 
-    public Optional<Pair<Cookie, Session>> extractSessionCookie(HttpServletRequest request) {
+    public Optional<Pair<HttpCookie, Session>> extractSessionCookie(ServerHttpRequest request) {
 
-        return Arrays.stream(ObjectUtils.defaultIfNull(request.getCookies(), new Cookie[0])).filter(cookie -> "JSESSIONID".equals(cookie.getName()))
-                .filter(cookie -> cookie.getValue() != null).map(cookie -> Pair.of(cookie, sessionRepository.findById(cookie.getValue())))
+        return extractAllSessionCookies(request).stream().map(cookie -> Pair.of(cookie, sessionRepository.findById(cookie.getValue())))
                 .filter(p -> p.getRight() != null).findFirst();
     }
 
-    public List<Cookie> extractAllSessionCookies(HttpServletRequest request) {
+    public List<HttpCookie> extractAllSessionCookies(ServerHttpRequest request) {
 
-        return Arrays.stream(ObjectUtils.defaultIfNull(request.getCookies(), new Cookie[0])).filter(cookie -> "JSESSIONID".equals(cookie.getName()))
-                .collect(Collectors.toList());
+        Map<String, List<HttpCookie>> emptyCookies = Collections.emptyMap();
+        return ObjectUtils.defaultIfNull(request.getCookies(), CollectionUtils.toMultiValueMap(emptyCookies)).getOrDefault("JSESSIONID",
+                Collections.emptyList());
+
     }
-
 }

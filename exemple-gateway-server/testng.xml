@@ -12,8 +12,9 @@
 		</packages>
 	</test>
 	<test name="ut security">
-		<packages>
-			<package name="com.exemple.gateway.security" />
-		</packages>
+		<classes>
+			<class name="com.exemple.gateway.security.SecurityAuthorizationHeaderTest"/>
+			<class name="com.exemple.gateway.security.SecurityCookieTest"/>
+		</classes>
 	</test>
 </suite>

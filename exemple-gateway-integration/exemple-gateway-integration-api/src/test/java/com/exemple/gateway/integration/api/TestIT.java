@@ -112,7 +112,7 @@ public class TestIT {
 
     }
 
-    @Test(enabled = false)
+    @Test
     public void options() {
 
         Response response = JsonRestTemplate.given()

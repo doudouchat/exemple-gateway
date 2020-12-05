@@ -34,6 +34,6 @@ logger("org.springframework.boot", INFO)
 logger("org.springframework.cloud", DEBUG)
 logger("com.exemple.gateway", DEBUG)
 logger("com.exemple.service", DEBUG)
-logger("org.glassfish.jersey.logging", DEBUG)
+logger("org.springframework.web.filter.CommonsRequestLoggingFilter", DEBUG)
 
 root(WARN, ["console", "archive"])

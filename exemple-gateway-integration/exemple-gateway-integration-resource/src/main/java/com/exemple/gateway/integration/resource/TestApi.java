@@ -1,67 +1,69 @@
 package com.exemple.gateway.integration.resource;
 
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
-@Path("/test")
+@RestController
+@RequestMapping(value = "/ws/test")
 public class TestApi {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TestApi.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    @HEAD
-    @Path("/{id}")
-    public Response head(@PathParam("id") String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @RequestMapping(value = "/{id}", method = RequestMethod.HEAD)
+    public void head(@PathVariable String id) {
 
-        return Response.status(Status.NO_CONTENT).build();
-
-    }
-
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response post(@NotNull JsonNode source) {
-
-        return Response.status(Status.CREATED).build();
+        LOG.info("head api");
 
     }
 
-    @PATCH
-    @Path("/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") String login, ArrayNode patch) {
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping
+    public void post(@RequestBody JsonNode source) {
 
-        return Response.status(Status.NO_CONTENT).build();
+        LOG.info("create api");
 
     }
 
-    @GET
-    @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public JsonNode get(@PathParam("id") String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping(value = "/{id}")
+    public void update(@PathVariable String id, @RequestBody ArrayNode patch) {
+
+        LOG.info("patch api");
+
+    }
+
+    @GetMapping(value = "/{id}")
+    public JsonNode get(@PathVariable String id) {
+
+        LOG.info("get api");
 
         return MAPPER.createObjectNode();
 
     }
 
-    @DELETE
-    @Path("/{id}")
-    public Response delete(@PathParam("id") String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping(value = "/{id}")
+    public void delete(@PathVariable String id) {
 
-        return Response.status(Status.NO_CONTENT).build();
+        LOG.info("delete api");
 
     }
 }

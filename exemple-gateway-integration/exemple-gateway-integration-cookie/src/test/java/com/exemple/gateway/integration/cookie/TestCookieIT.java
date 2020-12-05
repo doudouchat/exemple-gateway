@@ -176,7 +176,7 @@ public class TestCookieIT {
 
     }
 
-    @Test(dependsOnMethods = "token", enabled = false)
+    @Test(dependsOnMethods = "token")
     public void options() {
 
         Response response = JsonRestTemplate.given()

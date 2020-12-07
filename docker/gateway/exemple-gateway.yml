@@ -2,7 +2,7 @@ gateway:
    hazelcast:
       port: 5075
    security: 
-      excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /ExempleAuthorization/oauth/.*, /ExempleService/ws/.*/schemas/.*
+      excludes: /ExempleService(/?), /.*/info, /.*/health, /.*/openapi.json, /ExempleAuthorization/oauth/.*, /ExempleService/ws/.*/schemas/.*, /.*/.well-known/jwks.json
       csrf:
          excludes: /ExempleAuthorization/oauth/**
 security:

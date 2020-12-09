@@ -1,13 +1,13 @@
 logging:
    config: file:/usr/local/etc/gateway/logback.groovy
 gateway:
-   hazelcast:
-      port: 5075
    security:
       excludes: /ExempleService, /ExempleService/, /*/info, /*/*/info, /*/health, /*/*/health, /*/ws/v1/schemas/**, /*/*/*/openapi.json, /ExempleAuthorization/oauth/*, /*/.well-known/jwks.json
       csrf:
          excludes: /ExempleAuthorization/oauth/*
 spring:
+   hazelcast:
+      config: file:/usr/local/etc/gateway/hazelcast.yaml
    security:
       oauth2:
          resourceserver:

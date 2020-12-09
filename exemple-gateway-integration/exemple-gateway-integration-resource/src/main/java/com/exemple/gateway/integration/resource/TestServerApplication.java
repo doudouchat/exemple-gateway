@@ -1,5 +1,6 @@
 package com.exemple.gateway.integration.resource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -14,6 +15,10 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
+
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 
 @SpringBootApplication
 public class TestServerApplication extends SpringBootServletInitializer {
@@ -30,6 +35,17 @@ public class TestServerApplication extends SpringBootServletInitializer {
         filter.setIncludePayload(true);
         filter.setIncludeHeaders(true);
         return filter;
+    }
+
+    @Bean
+    public HazelcastInstance hazelcastInstance(@Value("${hazelcast.port}") int port) {
+
+        Config config = new Config();
+        config.getNetworkConfig().setPort(port);
+        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
+        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
+
+        return Hazelcast.newHazelcastInstance(config);
     }
 
     @Configuration

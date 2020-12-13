@@ -17,7 +17,7 @@ spring:
       gateway:
          httpclient:
             connect-timeout: 1000
-            response-timeout: 30s
+            response-timeout: 60s
          routes:
          -  id: api-service
             uri: http://172.17.0.1:8080/ExempleService

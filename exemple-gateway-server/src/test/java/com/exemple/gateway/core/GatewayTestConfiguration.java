@@ -11,6 +11,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -19,11 +20,25 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 
 import com.auth0.jwt.algorithms.Algorithm;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 
 @Configuration
 @Import({ GatewayConfiguration.class })
 @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
 public class GatewayTestConfiguration {
+
+    @Bean
+    public HazelcastInstance hazelcastInstance(@Value("${hazelcast.port}") int port) {
+
+        Config config = new Config();
+        config.getNetworkConfig().setPort(port);
+        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
+        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
+
+        return Hazelcast.newHazelcastInstance(config);
+    }
 
     @Bean
     public Algorithm algo() throws GeneralSecurityException, IOException {

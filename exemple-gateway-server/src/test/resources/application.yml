@@ -1,11 +1,11 @@
 gateway:
-   hazelcast:
-      port: ${hazelcast.port}
    security:
       excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /ExempleAuthorization/oauth/*
       csrf:
          excludes: /ExempleAuthorization/oauth/*
 spring:
+   hazelcast:
+      config: file:${project.build.testOutputDirectory}/hazelcast.yaml
    security:
       oauth2:
          resourceserver:
@@ -41,3 +41,5 @@ authorization:
    port: ${authorization.port}
 public_key: classpath:public_key
 private_key: classpath:private_key
+hazelcast:
+   port: ${hazelcast.port}

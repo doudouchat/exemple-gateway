@@ -1,11 +1,13 @@
 logging:
    config: file:${application.log.file}
+hazelcast:
+   port: ${hazelcast.port}
 gateway:
-   hazelcast:
-      port: ${hazelcast.port}
    security:
       excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /*/oauth/*
 spring:
+   hazelcast:
+      config: file:${project.build.testOutputDirectory}/hazelcast.yaml
    security:
       oauth2:
          resourceserver:

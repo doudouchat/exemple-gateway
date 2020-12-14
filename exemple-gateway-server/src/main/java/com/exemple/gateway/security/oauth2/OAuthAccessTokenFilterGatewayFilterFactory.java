@@ -59,7 +59,9 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         this.config = new ModifyResponseBodyGatewayFilterFactory.Config().setRewriteFunction(String.class, String.class,
                 (ServerWebExchange e, String b) -> ThrowingBiFunction.sneaky((ServerWebExchange exchange, String previousBody) -> {
 
-                    saveSession(exchange, MAPPER.readTree(previousBody));
+                    if (exchange.getResponse().getStatusCode().is2xxSuccessful()) {
+                        saveSession(exchange, MAPPER.readTree(previousBody));
+                    }
 
                     return Mono.just(previousBody);
                 }).apply(e, b));

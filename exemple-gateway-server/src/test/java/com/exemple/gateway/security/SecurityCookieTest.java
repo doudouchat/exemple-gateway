@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -172,8 +173,8 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     }
 
-    @DataProvider(name = "securityFailure")
-    private Object[][] securityFailure() {
+    @DataProvider(name = "securityFailures")
+    private Object[][] securityFailures() {
 
         return new Object[][] {
 
@@ -182,7 +183,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
                 { ACCESS_TOKEN, "toto", HttpStatus.FORBIDDEN } };
     }
 
-    @Test(dataProvider = "securityFailure", dependsOnMethods = "token")
+    @Test(dataProvider = "securityFailures", dependsOnMethods = "token")
     public void securityFailure(String accessToken, String csrfToken, HttpStatus expectedHttpStatus) throws JsonProcessingException {
 
         Map<String, Object> responseBody = new HashMap<>();
@@ -191,7 +192,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
         responseBody.put("scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+                .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(HttpStatus.OK.value()));
 
         Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
 
@@ -201,6 +202,28 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
                 .header("X-XSRF-TOKEN", csrfToken).post(restTemplate.getRootUri() + "/ExempleService/account");
 
         assertThat(response.getStatusCode(), is(expectedHttpStatus.value()));
+
+    }
+
+    @Test(dependsOnMethods = "token")
+    public void securityFailure() throws JsonProcessingException {
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("access_token", ACCESS_TOKEN);
+
+        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
+                .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(HttpStatus.UNAUTHORIZED.value()));
+
+        Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+
+        Cookie sessionId = response.getDetailedCookie("JSESSIONID");
+
+        assertThat(sessionId, is(nullValue()));
+
+        response = requestSpecification.cookie("XSRF-TOKEN", xsrfToken.getValue()).header("X-XSRF-TOKEN", xsrfToken.getValue())
+                .post(restTemplate.getRootUri() + "/ExempleService/account");
+
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED.value()));
 
     }
 

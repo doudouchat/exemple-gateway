@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
+import java.util.UUID;
 
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
@@ -24,6 +25,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.exemple.gateway.common.LoggingFilter;
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
+import com.exemple.gateway.security.token.validator.NotBlackListTokenValidator;
+import com.hazelcast.core.HazelcastInstance;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -41,6 +44,9 @@ public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfigurat
     @Autowired
     private Algorithm algo;
 
+    @Autowired
+    private HazelcastInstance hazelcastInstance;
+
     @BeforeMethod
     private void before() {
 
@@ -53,8 +59,8 @@ public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfigurat
     @Test
     public void securitySuccess() {
 
-        String token = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
-                .sign(algo);
+        String token = JWT.create().withJWTId(UUID.randomUUID().toString()).withClaim("user_name", "john_doe").withAudience("test")
+                .withArrayClaim("scope", new String[] { "account:read" }).sign(algo);
 
         apiClient.when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + token).withPath("/ExempleService/account"))
                 .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
@@ -68,10 +74,25 @@ public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfigurat
     }
 
     @Test
-    public void securityFailure() {
+    public void securityFailureExpiredTime() {
 
         String token = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
                 .withExpiresAt(Date.from(Instant.now().minus(1, ChronoUnit.DAYS))).sign(algo);
+
+        Response response = requestSpecification.header("Authorization", "BEARER " + token)
+                .post(restTemplate.getRootUri() + "/ExempleService/account");
+
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED.value()));
+
+    }
+
+    @Test
+    public void securityFailureTokenInBlackList() {
+
+        String jwtId = UUID.randomUUID().toString();
+        String token = JWT.create().withJWTId(jwtId).withClaim("user_name", "john_doe").withAudience("test")
+                .withArrayClaim("scope", new String[] { "account:read" }).sign(algo);
+        hazelcastInstance.getMap(NotBlackListTokenValidator.TOKEN_BLACK_LIST).put(jwtId, token);
 
         Response response = requestSpecification.header("Authorization", "BEARER " + token)
                 .post(restTemplate.getRootUri() + "/ExempleService/account");

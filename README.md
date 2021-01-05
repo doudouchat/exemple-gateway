@@ -1,5 +1,5 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/96f5ace9ca79448db55b201ac7a9781b)](https://app.codacy.com/gh/doudouchat/exemple-gateway?utm_source=github.com&utm_medium=referral&utm_content=doudouchat/exemple-gateway&utm_campaign=Badge_Grade)
-[![Build Status](https://travis-ci.com/doudouchat/exemple-gateway.svg?branch=master)](https://travis-ci.com/doudouchat/exemple-gateway)
+[![build](https://github.com/doudouchat/exemple-gateway/workflows/build/badge.svg)](https://github.com/doudouchat/exemple-gateway/actions)
 [![codecov](https://codecov.io/gh/doudouchat/exemple-gateway/graph/badge.svg)](https://codecov.io/gh/doudouchat/exemple-gateway) 
 
 # exemple-gateway

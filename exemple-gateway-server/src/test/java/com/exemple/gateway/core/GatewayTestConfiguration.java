@@ -9,6 +9,9 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +31,11 @@ import com.hazelcast.core.HazelcastInstance;
 @Import({ GatewayConfiguration.class })
 @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
 public class GatewayTestConfiguration {
+
+    @Bean
+    public Clock fixed() {
+        return Clock.fixed(Instant.now(), ZoneId.systemDefault());
+    }
 
     @Bean
     public HazelcastInstance hazelcastInstance(@Value("${hazelcast.port}") int port) {

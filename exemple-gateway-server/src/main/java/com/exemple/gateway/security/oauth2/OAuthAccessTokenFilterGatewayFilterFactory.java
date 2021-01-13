@@ -1,7 +1,8 @@
 package com.exemple.gateway.security.oauth2;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
@@ -50,10 +51,13 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
     private final ModifyResponseBodyGatewayFilterFactory.Config config;
 
-    public OAuthAccessTokenFilterGatewayFilterFactory(SessionRepository repository, SessionHelper sessionHelper) {
+    private final Clock clock;
+
+    public OAuthAccessTokenFilterGatewayFilterFactory(SessionRepository repository, SessionHelper sessionHelper, Clock clock) {
         super(Object.class);
         this.repository = repository;
         this.sessionHelper = sessionHelper;
+        this.clock = clock;
         this.gatewayFilterFactory = new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
                 Collections.emptySet(), Collections.emptySet());
         this.config = new ModifyResponseBodyGatewayFilterFactory.Config().setRewriteFunction(String.class, String.class,
@@ -85,7 +89,6 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         LOG.debug("session cookie is {}", session.getId());
 
         saveTokens(session, body);
-        saveMaxAge(sessionCookie, body);
         exchange.getResponse().addCookie(sessionCookie.build());
 
     }
@@ -119,6 +122,9 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
         if (!authorizationNode.path(ACCESS_TOKEN).isMissingNode()) {
             session.setAttribute(ACCESS_TOKEN, authorizationNode.get(ACCESS_TOKEN).textValue());
+            Date expiresAt = JWT.decode(authorizationNode.get(ACCESS_TOKEN).textValue()).getExpiresAt();
+            Assert.notNull(expiresAt, "exp is required");
+            session.setMaxInactiveInterval(Duration.between(Instant.now(clock), expiresAt.toInstant()));
             LOG.debug("save access token in session {}", session.getId());
 
         }
@@ -131,14 +137,5 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
         repository.save(session);
 
-    }
-
-    private static void saveMaxAge(ResponseCookieBuilder sessionCookie, JsonNode authorizationNode) {
-
-        if (!authorizationNode.path(ACCESS_TOKEN).isMissingNode()) {
-            Date expiresAt = JWT.decode(authorizationNode.get(ACCESS_TOKEN).textValue()).getExpiresAt();
-            Assert.notNull(expiresAt, "exp is required");
-            sessionCookie.maxAge(Instant.now().until(expiresAt.toInstant(), ChronoUnit.SECONDS));
-        }
     }
 }

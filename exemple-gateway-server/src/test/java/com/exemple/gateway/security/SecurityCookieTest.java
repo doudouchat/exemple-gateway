@@ -1,14 +1,12 @@
 package com.exemple.gateway.security;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
@@ -65,12 +63,12 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
     private String DEPRECATED_ACCESS_TOKEN;
 
     private String REFRESH_TOKEN;
+
+    @Autowired
     private Clock clock;
 
     @BeforeClass
     public void init() {
-
-        clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
 
         ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
                 .withExpiresAt(Date.from(Instant.now(clock).plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
@@ -117,8 +115,8 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
         xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
 
         assertThat(sessionId.isHttpOnly(), is(true));
-        assertThat(sessionId.getExpiryDate(), is(notNullValue()));
-        assertThat(sessionId.getMaxAge(), is(greaterThan(0)));
+        assertThat(sessionId.getExpiryDate(), is(nullValue()));
+        assertThat(sessionId.getMaxAge(), is(-1));
         assertThat(xsrfToken.isHttpOnly(), is(false));
 
     }

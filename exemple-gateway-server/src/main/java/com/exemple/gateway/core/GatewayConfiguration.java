@@ -1,5 +1,8 @@
 package com.exemple.gateway.core;
 
+import java.time.Clock;
+
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.reactive.config.CorsRegistry;
@@ -13,6 +16,11 @@ import com.exemple.gateway.session.GatewaySessionConfiguration;
 @EnableWebFlux
 @Import({ GatewaySecurityConfiguration.class, GatewaySessionConfiguration.class })
 public class GatewayConfiguration implements WebFluxConfigurer {
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
+    }
 
     @Override
     public void addCorsMappings(CorsRegistry corsRegistry) {

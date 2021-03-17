@@ -12,7 +12,7 @@ spring:
       oauth2:
          resourceserver:
             jwt:
-               jwk-set-uri: http://172.17.0.1:8084/ExempleAuthorization/.well-known/jwks.json
+               jwk-set-uri: http://172.17.0.1:8090/ExempleAuthorization/.well-known/jwks.json
    cloud:
       gateway:
          httpclient:
@@ -29,7 +29,7 @@ spring:
             - RemoveRequestHeader=cookie
             - RemoveRequestHeader=x-xsrf-token
          -  id: authorization-service-token
-            uri: http://172.17.0.1:8084/ExempleAuthorization
+            uri: http://172.17.0.1:8090/ExempleAuthorization
             predicates:
             - Path=/ExempleAuthorization/oauth/token
             filters:
@@ -37,7 +37,7 @@ spring:
             - OAuthAccessTokenFilter=
             - AddCsrfToken=
          -  id: authorization-service
-            uri: http://172.17.0.1:8084/ExempleAuthorization
+            uri: http://172.17.0.1:8090/ExempleAuthorization
             predicates:
             - Path=/ExempleAuthorization/**
             filters:

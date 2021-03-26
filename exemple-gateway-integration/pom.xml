@@ -63,6 +63,16 @@
 				<version>2.0.0-SNAPSHOT</version>
 			</dependency>
 
+			<!-- TOMCAT -->
+
+			<dependency>
+				<groupId>org.apache.tomcat</groupId>
+				<artifactId>tomcat</artifactId>
+				<version>${tomcat.version}</version>
+				<type>pom</type>
+				<scope>provided</scope>
+			</dependency>
+
 		</dependencies>
 
 	</dependencyManagement>

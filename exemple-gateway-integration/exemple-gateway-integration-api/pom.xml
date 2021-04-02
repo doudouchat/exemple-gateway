@@ -15,7 +15,8 @@
 
 		<dependency>
 			<groupId>exemple</groupId>
-			<artifactId>exemple-service-api-integration</artifactId>
+			<artifactId>exemple-gateway-integration-common</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- GATEWAY INTEGRATION RESOURCE -->
@@ -93,6 +94,14 @@
 						<groupId>org.codehaus.cargo</groupId>
 						<artifactId>cargo-maven3-plugin</artifactId>
 						<configuration>
+							<container>
+								<dependencies>
+									<dependency>
+										<groupId>exemple</groupId>
+										<artifactId>exemple-gateway-integration-common</artifactId>
+									</dependency>
+								</dependencies>
+							</container>
 							<deployables>
 								<deployable>
 									<groupId>${project.groupId}</groupId>
@@ -109,7 +118,7 @@
 									<cargo.resource.resource.spring>
 										cargo.resource.name=spring.config.location|
 										cargo.resource.type=java.lang.String|
-										cargo.resource.parameters=factory=com.exemple.service.api.integration.core.PrimitivesAndStringFactory;value=${gateway.path}
+										cargo.resource.parameters=factory=com.exemple.gateway.integration.common.PrimitivesAndStringFactory;value=${gateway.path}
 									</cargo.resource.resource.spring>
 								</properties>
 							</configuration>

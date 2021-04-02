@@ -9,11 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.exemple.service.api.integration.core.JsonRestTemplate;
+import com.exemple.gateway.integration.common.JsonRestTemplate;
 
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
@@ -35,9 +34,7 @@ public class TestCookieIT {
         Response response = JsonRestTemplate.given(JsonRestTemplate.APPLICATION_URL, ContentType.URLENC).auth().basic("resource", "secret")
                 .formParams(params).post("/oauth/token");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
-
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.getStatusCode(), is(200));
         assertThat(response.getCookies().isEmpty(), is(false));
         assertThat(response.getCookie("JSESSIONID"), is(notNullValue()));
         assertThat(response.getCookie("XSRF-TOKEN"), is(notNullValue()));
@@ -61,7 +58,7 @@ public class TestCookieIT {
 
                 .auth().basic("resource", "secret").formParams(params).post("/oauth/token");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.getStatusCode(), is(200));
 
     }
 
@@ -79,7 +76,7 @@ public class TestCookieIT {
 
                 .body(body).post(URL);
 
-        assertThat(response.getStatusCode(), is(HttpStatus.CREATED.value()));
+        assertThat(response.getStatusCode(), is(201));
 
     }
 
@@ -88,15 +85,15 @@ public class TestCookieIT {
 
         return new Object[][] {
                 //
-                { "bad jsessionId", xsrfToken.getValue(), HttpStatus.UNAUTHORIZED },
+                { "bad jsessionId", xsrfToken.getValue(), 401 },
                 //
-                { sessionId.getValue(), "bad xrsf token", HttpStatus.FORBIDDEN }
+                { sessionId.getValue(), "bad xrsf token", 403 }
 
         };
     }
 
     @Test(dependsOnMethods = "token", dataProvider = "postFailures")
-    public void postFailure(String jsessionId, String xrsfToken, HttpStatus expectedStatus) {
+    public void postFailure(String jsessionId, String xrsfToken, int expectedStatus) {
 
         Map<String, Object> body = new HashMap<>();
         body.put("value", UUID.randomUUID());
@@ -109,7 +106,7 @@ public class TestCookieIT {
 
                 .body(body).post(URL);
 
-        assertThat(response.getStatusCode(), is(expectedStatus.value()));
+        assertThat(response.getStatusCode(), is(expectedStatus));
 
     }
 
@@ -124,7 +121,7 @@ public class TestCookieIT {
 
                 .head(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT.value()));
+        assertThat(response.getStatusCode(), is(204));
 
     }
 
@@ -137,7 +134,7 @@ public class TestCookieIT {
 
                 .get(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.getStatusCode(), is(200));
 
     }
 
@@ -152,7 +149,7 @@ public class TestCookieIT {
 
                 .delete(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT.value()));
+        assertThat(response.getStatusCode(), is(204));
 
     }
 
@@ -172,7 +169,7 @@ public class TestCookieIT {
 
                 .body(Collections.singletonList(patch)).patch(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT.value()));
+        assertThat(response.getStatusCode(), is(204));
 
     }
 
@@ -185,7 +182,7 @@ public class TestCookieIT {
 
                 .options(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.getStatusCode(), is(200));
 
     }
 }

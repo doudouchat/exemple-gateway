@@ -11,13 +11,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.auth0.jwt.JWT;
+import com.exemple.gateway.integration.common.JsonRestTemplate;
 import com.exemple.gateway.integration.resource.TestAlgorithmConfiguration;
-import com.exemple.service.api.integration.core.JsonRestTemplate;
 
 import io.restassured.response.Response;
 
@@ -51,7 +50,7 @@ public class TestIT {
 
                 .body(body).post(URL);
 
-        assertThat(response.getStatusCode(), is(HttpStatus.CREATED.value()));
+        assertThat(response.getStatusCode(), is(201));
 
     }
 
@@ -64,7 +63,7 @@ public class TestIT {
 
                 .head(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT.value()));
+        assertThat(response.getStatusCode(), is(204));
 
     }
 
@@ -77,7 +76,7 @@ public class TestIT {
 
                 .get(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.getStatusCode(), is(200));
 
     }
 
@@ -90,7 +89,7 @@ public class TestIT {
 
                 .delete(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT.value()));
+        assertThat(response.getStatusCode(), is(204));
 
     }
 
@@ -108,7 +107,7 @@ public class TestIT {
 
                 .body(Collections.singletonList(patch)).patch(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT.value()));
+        assertThat(response.getStatusCode(), is(204));
 
     }
 
@@ -121,7 +120,7 @@ public class TestIT {
 
                 .options(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.getStatusCode(), is(200));
 
     }
 }

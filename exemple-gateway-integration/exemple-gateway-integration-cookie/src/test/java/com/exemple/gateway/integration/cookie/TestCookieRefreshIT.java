@@ -7,10 +7,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
 import org.testng.annotations.Test;
 
-import com.exemple.service.api.integration.core.JsonRestTemplate;
+import com.exemple.gateway.integration.common.JsonRestTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.restassured.http.ContentType;
@@ -37,9 +36,7 @@ public class TestCookieRefreshIT {
         Response response = JsonRestTemplate.given(JsonRestTemplate.APPLICATION_URL, ContentType.URLENC).auth().basic("resource", "secret")
                 .formParams(params).post("/oauth/token");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
-
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.getStatusCode(), is(200));
         assertThat(response.getCookies().isEmpty(), is(false));
         assertThat(response.getCookie("JSESSIONID"), is(notNullValue()));
         assertThat(response.getCookie("XSRF-TOKEN"), is(notNullValue()));
@@ -60,7 +57,7 @@ public class TestCookieRefreshIT {
 
                 .get(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        assertThat(response.getStatusCode(), is(200));
 
     }
 

@@ -18,13 +18,6 @@ jobs:
             path: ~/.m2
             key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
             restore-keys: ${{ runner.os }}-m2
-      -  name: Checkout exemple service
-         uses: actions/checkout@v2
-         with:
-            path: exemple-service
-            repository: doudouchat/exemple-service
-      -  name: Build exemple service
-         run: mvn -f ${{ github.workspace }}/exemple-service clean install -Dmaven.test.skip=true
       -  uses: actions/checkout@v2
       -  name: Build with Maven
          run: mvn clean verify -Pgateway,it

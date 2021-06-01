@@ -42,3 +42,6 @@ spring:
             - Path=/ExempleAuthorization/**
             filters:
             - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - AccessTokenRelay=
+            - RemoveRequestHeader=cookie
+            - RemoveRequestHeader=x-xsrf-token

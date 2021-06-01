@@ -10,8 +10,10 @@ services:
     - "--spring.config.location=/usr/local/etc/gateway/exemple-gateway.yml"
     - "--server.servlet.context-path=/"
     - "JAVA_OPTS=-Xms256m -Xmx1g"
+    - "JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n"
     ports:
     - 8086:8080
+    - 9086:8000
     volumes:
     - ./docker/gateway:/usr/local/etc/gateway
     healthcheck:

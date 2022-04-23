@@ -21,7 +21,6 @@
 
 		<!-- TOMCAT -->
 		<tomcat.container.id>tomcat9x</tomcat.container.id>
-		<tomcat.version>9.0.59</tomcat.version>
 
 		<application.log.file>${project.build.testOutputDirectory}/logback.groovy</application.log.file>
 		<application.contextpath></application.contextpath>
@@ -45,16 +44,6 @@
 	<dependencyManagement>
 
 		<dependencies>
-
-			<!-- SPRING BOOT -->
-
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${org.springframework.boot-version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
 
 			<!-- TOMCAT -->
 
@@ -82,7 +71,6 @@
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-xml</artifactId>
-			<version>${groovy-version}</version>
 		</dependency>
 
 	</dependencies>
@@ -98,7 +86,6 @@
 				<plugin>
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-maven-plugin</artifactId>
-					<version>${org.springframework.boot-version}</version>
 					<configuration>
 						<jvmArguments>${jacoco.it.agent.argLine}</jvmArguments>
 						<jmxPort>${application.jmx.port}</jmxPort>
@@ -178,7 +165,6 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-failsafe-plugin</artifactId>
-					<version>3.0.0-M4</version>
 					<configuration>
 						<suiteXmlFiles combine.children="append">
 							<suiteXmlFile>testng.xml</suiteXmlFile>
@@ -204,15 +190,6 @@
 		</pluginManagement>
 
 		<plugins>
-
-			<!-- VERSION -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>versions-maven-plugin</artifactId>
-				<configuration>
-					<processDependencyManagement>false</processDependencyManagement>
-				</configuration>
-			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

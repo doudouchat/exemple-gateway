@@ -2,6 +2,11 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-dependencies</artifactId>
+		<version>2.5.13</version>
+	</parent>
 	<groupId>exemple</groupId>
 	<artifactId>exemple-gateway</artifactId>
 	<version>2.0.0-SNAPSHOT</version>
@@ -43,13 +48,6 @@
 		<authorization.port>8084</authorization.port>
 		<gateway.port>8080</gateway.port>
 
-		<!-- VERSION -->
-
-		<org.slf4j-version>1.7.36</org.slf4j-version>
-		<org.springframework.security-version>5.5.6</org.springframework.security-version>
-		<org.springframework.boot-version>2.5.13</org.springframework.boot-version>
-		<groovy-version>3.0.10</groovy-version>
-
 		<!-- SONAR -->
 
 		<!-- force sonar to use jacoco -->
@@ -76,13 +74,13 @@
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-oauth2-jose</artifactId>
-				<version>${org.springframework.security-version}</version>
+				<version>${spring-security.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-oauth2-resource-server</artifactId>
-				<version>${org.springframework.security-version}</version>
+				<version>${spring-security.version}</version>
 			</dependency>
 
 			<!-- SPRING SESSION -->
@@ -98,14 +96,6 @@
 						<artifactId>hazelcast</artifactId>
 					</exclusion>
 				</exclusions>
-			</dependency>
-
-			<!-- HAZELCAST -->
-
-			<dependency>
-				<groupId>com.hazelcast</groupId>
-				<artifactId>hazelcast</artifactId>
-				<version>4.2.4</version>
 			</dependency>
 
 			<!-- SPRING JWT -->
@@ -125,31 +115,6 @@
 				<version>3.19.1</version>
 			</dependency>
 
-			<!-- YAML -->
-
-			<!-- http://www.snakeyaml.org -->
-			<dependency>
-				<groupId>org.yaml</groupId>
-				<artifactId>snakeyaml</artifactId>
-				<version>1.30</version>
-			</dependency>
-
-			<!-- GROOVY -->
-
-			<dependency>
-				<groupId>org.codehaus.groovy</groupId>
-				<artifactId>groovy</artifactId>
-				<version>${groovy-version}</version>
-			</dependency>
-
-			<!-- COMMONS APACHE -->
-
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-lang3</artifactId>
-				<version>3.12.0</version>
-			</dependency>
-
 			<!-- COMMONS APACHE -->
 
 			<dependency>
@@ -164,42 +129,6 @@
 				<groupId>com.pivovarit</groupId>
 				<artifactId>throwing-function</artifactId>
 				<version>1.5.1</version>
-			</dependency>
-
-			<!-- SERVLET -->
-
-			<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>javax.servlet-api</artifactId>
-				<version>4.0.1</version>
-			</dependency>
-
-			<!-- LOGGING -->
-
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${org.slf4j-version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>jcl-over-slf4j</artifactId>
-				<version>${org.slf4j-version}</version>
-				<scope>runtime</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>jul-to-slf4j</artifactId>
-				<version>${org.slf4j-version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-classic</artifactId>
-				<version>1.2.3</version>
-				<scope>runtime</scope>
 			</dependency>
 
 			<!-- TESTNG -->
@@ -217,23 +146,6 @@
 				<groupId>org.hamcrest</groupId>
 				<artifactId>hamcrest-all</artifactId>
 				<version>1.3</version>
-				<scope>test</scope>
-			</dependency>
-
-			<!-- REST ASSURED -->
-
-			<!-- http://rest-assured.io/ -->
-			<dependency>
-				<groupId>io.rest-assured</groupId>
-				<artifactId>rest-assured</artifactId>
-				<version>4.4.0</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>io.rest-assured</groupId>
-				<artifactId>rest-assured-all</artifactId>
-				<version>4.4.0</version>
 				<scope>test</scope>
 			</dependency>
 
@@ -281,6 +193,7 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+			<version>1.2.8</version>
 		</dependency>
 
 		<!-- YAML -->
@@ -309,20 +222,11 @@
 		<pluginManagement>
 			<plugins>
 
-				<!-- COMPILATION -->
-				<!-- http://maven.apache.org/plugins/maven-compiler-plugin/ -->
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.1</version>
-				</plugin>
-
 				<!-- JAR -->
 				<!-- http://maven.apache.org/plugins/maven-jar-plugin/index.html -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-jar-plugin</artifactId>
-					<version>3.2.0</version>
 					<configuration>
 						<archive>
 							<manifest>
@@ -337,20 +241,11 @@
 					</configuration>
 				</plugin>
 
-				<!-- DEPLOY -->
-				<!-- https://maven.apache.org/plugins/maven-deploy-plugin/index.html -->
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-deploy-plugin</artifactId>
-					<version>3.0.0-M1</version>
-				</plugin>
-
 				<!-- TEST UNITAIRE -->
 				<!-- http://maven.apache.org/plugins/maven-surefire-plugin/ -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>3.0.0-M4</version>
 					<configuration>
 						<suiteXmlFiles>
 							<suiteXmlFile>testng.xml</suiteXmlFile>
@@ -364,8 +259,8 @@
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>versions-maven-plugin</artifactId>
-					<version>2.8.1</version>
 					<configuration>
+						<processDependencyManagement>false</processDependencyManagement>
 						<outputFile>${project.build.directory}/outdated-dependencies.txt</outputFile>
 						<outputEncoding>${project.build.sourceEncoding}</outputEncoding>
 					</configuration>
@@ -425,38 +320,6 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
 					<version>3.0.0-M1</version>
-				</plugin>
-
-				<!-- CLEAN FILE -->
-				<!-- http://maven.apache.org/plugins/maven-clean-plugin/ -->
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-clean-plugin</artifactId>
-					<version>3.1.0</version>
-				</plugin>
-
-				<!-- HELPER -->
-				<!-- https://www.mojohaus.org/build-helper-maven-plugin/index.html -->
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>build-helper-maven-plugin</artifactId>
-					<version>3.2.0</version>
-				</plugin>
-
-				<!-- ENFORCER -->
-				<!-- https://maven.apache.org/enforcer/maven-enforcer-plugin/ -->
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-enforcer-plugin</artifactId>
-					<version>3.0.0-M3</version>
-				</plugin>
-
-				<!-- SPRING BOOT -->
-				<!-- https://docs.spring.io/spring-boot/docs/current/maven-plugin/index.html -->
-				<plugin>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-maven-plugin</artifactId>
-					<version>${org.springframework.boot-version}</version>
 				</plugin>
 
 			</plugins>

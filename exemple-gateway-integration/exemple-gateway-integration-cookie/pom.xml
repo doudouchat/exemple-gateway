@@ -67,6 +67,14 @@
 					<type>war</type>
 				</dependency>
 
+				<!-- RESOURCE CONNECTOR -->
+				<dependency>
+					<groupId>org.glassfish.main.resources</groupId>
+					<artifactId>resources-connector</artifactId>
+					<version>5.1.0</version>
+					<scope>test</scope>
+				</dependency>
+
 			</dependencies>
 
 			<build>
@@ -81,8 +89,8 @@
 							<container>
 								<dependencies>
 									<dependency>
-										<groupId>exemple</groupId>
-										<artifactId>exemple-gateway-integration-common</artifactId>
+										<groupId>org.glassfish.main.resources</groupId>
+										<artifactId>resources-connector</artifactId>
 									</dependency>
 								</dependencies>
 							</container>
@@ -102,7 +110,7 @@
 									<cargo.resource.resource.spring>
 										cargo.resource.name=spring.config.location|
 										cargo.resource.type=java.lang.String|
-										cargo.resource.parameters=factory=com.exemple.gateway.integration.common.PrimitivesAndStringFactory;value=${gateway.path}
+										cargo.resource.parameters=factory=org.glassfish.resources.custom.factory.PrimitivesAndStringFactory;value=${gateway.path}
 									</cargo.resource.resource.spring>
 								</properties>
 							</configuration>

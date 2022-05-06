@@ -1,7 +1,6 @@
 package com.exemple.gateway.security;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -9,6 +8,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -18,8 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -47,7 +46,7 @@ public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfigurat
     @Autowired
     private HazelcastInstance hazelcastInstance;
 
-    @BeforeMethod
+    @BeforeEach
     private void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
@@ -59,45 +58,55 @@ public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfigurat
     @Test
     public void securitySuccess() {
 
+        // Given build token
         String token = JWT.create().withJWTId(UUID.randomUUID().toString()).withClaim("user_name", "john_doe").withAudience("test")
                 .withArrayClaim("scope", new String[] { "account:read" }).sign(algo);
 
+        // And mock client
         apiClient.when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + token).withPath("/ExempleService/account"))
                 .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
                         .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
 
+        // When perform header
         Response response = requestSpecification.header("Authorization", "BEARER " + token)
                 .post(restTemplate.getRootUri() + "/ExempleService/account");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
     }
 
     @Test
     public void securityFailureExpiredTime() {
 
+        // Given build token
         String token = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
                 .withExpiresAt(Date.from(Instant.now().minus(1, ChronoUnit.DAYS))).sign(algo);
 
+        // When perform header
         Response response = requestSpecification.header("Authorization", "BEARER " + token)
                 .post(restTemplate.getRootUri() + "/ExempleService/account");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED.value()));
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 
     }
 
     @Test
     public void securityFailureTokenInBlackList() {
 
+        // Given build token
         String jwtId = UUID.randomUUID().toString();
         String token = JWT.create().withJWTId(jwtId).withClaim("user_name", "john_doe").withAudience("test")
                 .withArrayClaim("scope", new String[] { "account:read" }).sign(algo);
         hazelcastInstance.getMap(NotBlackListTokenValidator.TOKEN_BLACK_LIST).put(jwtId, token);
 
+        // When perform header
         Response response = requestSpecification.header("Authorization", "BEARER " + token)
                 .post(restTemplate.getRootUri() + "/ExempleService/account");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED.value()));
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 
     }
 

@@ -1,7 +1,6 @@
 package com.exemple.gateway.integration.api;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -10,9 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
 import com.auth0.jwt.JWT;
 import com.exemple.gateway.integration.common.JsonRestTemplate;
@@ -24,10 +23,10 @@ public class TestIT {
 
     private static final String URL = "/ws/test";
 
-    private String ACCESS_TOKEN;
+    private static String ACCESS_TOKEN;
 
-    @BeforeClass
-    public void init() throws IOException, GeneralSecurityException {
+    @BeforeAll
+    public static void init() throws IOException, GeneralSecurityException {
 
         TestAlgorithmConfiguration algorithmConfiguration = new TestAlgorithmConfiguration(new ClassPathResource("public_key"),
                 new ClassPathResource("private_key"));
@@ -41,6 +40,7 @@ public class TestIT {
     @Test
     public void post() {
 
+        // When perform post
         Map<String, Object> body = new HashMap<>();
         body.put("value", UUID.randomUUID());
 
@@ -50,52 +50,59 @@ public class TestIT {
 
                 .body(body).post(URL);
 
-        assertThat(response.getStatusCode(), is(201));
-
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(201);
     }
 
     @Test
     public void head() {
 
+        // When perform head
         Response response = JsonRestTemplate.given()
 
                 .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
 
                 .head(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(204));
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(204);
 
     }
 
     @Test
     public void get() {
 
+        // When perform get
         Response response = JsonRestTemplate.given()
 
                 .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
 
                 .get(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(200));
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(200);
 
     }
 
     @Test
     public void delete() {
 
+        // When perform delete
         Response response = JsonRestTemplate.given()
 
                 .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
 
                 .delete(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(204));
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(204);
 
     }
 
     @Test
     public void patch() {
 
+        // When perform patch
         Map<String, Object> patch = new HashMap<>();
         patch.put("op", "replace");
         patch.put("path", "/value");
@@ -107,20 +114,23 @@ public class TestIT {
 
                 .body(Collections.singletonList(patch)).patch(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(204));
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(204);
 
     }
 
     @Test
     public void options() {
 
+        // When perform options
         Response response = JsonRestTemplate.given()
 
                 .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
 
                 .options(URL + "/{id}", "123");
 
-        assertThat(response.getStatusCode(), is(200));
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(200);
 
     }
 }

@@ -36,13 +36,6 @@
 			<artifactId>java-jwt</artifactId>
 		</dependency>
 
-		<!-- HAMCREST -->
-
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-all</artifactId>
-		</dependency>
-
 		<!-- TEST -->
 
 		<dependency>

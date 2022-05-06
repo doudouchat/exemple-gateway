@@ -1,16 +1,18 @@
 package com.exemple.gateway.core;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+
 
 @SpringBootTest(classes = GatewayTestConfiguration.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-public class GatewayServerTestConfiguration extends AbstractTestNGSpringContextTests {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class GatewayServerTestConfiguration {
 
     static {
         System.setProperty("mockserver.logLevel", "DEBUG");
@@ -30,19 +32,19 @@ public class GatewayServerTestConfiguration extends AbstractTestNGSpringContextT
 
     protected MockServerClient authorizationClient;
 
-    @BeforeClass
+    @BeforeAll
     public final void apiServer() {
         this.apiServer = ClientAndServer.startClientAndServer(apiPort);
         this.apiClient = new MockServerClient("localhost", apiPort);
     }
 
-    @BeforeClass
+    @BeforeAll
     public final void authorizationServer() {
         this.authorizationServer = ClientAndServer.startClientAndServer(authorizationPort);
         this.authorizationClient = new MockServerClient("localhost", authorizationPort);
     }
 
-    @AfterClass
+    @AfterAll
     public final void closeMockServer() {
 
         this.apiServer.close();

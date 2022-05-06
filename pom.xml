@@ -123,14 +123,6 @@
 				<version>2.11.0</version>
 			</dependency>
 
-			<!-- EXCEPTION LAMBDA -->
-
-			<dependency>
-				<groupId>com.pivovarit</groupId>
-				<artifactId>throwing-function</artifactId>
-				<version>1.5.1</version>
-			</dependency>
-
 			<!-- MOCK SERVER -->
 
 			<dependency>
@@ -185,6 +177,13 @@
 			<artifactId>snakeyaml</artifactId>
 		</dependency>
 
+		<!-- LOMBOK -->
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
 		<!-- JUNIT -->
 
 		<dependency>
@@ -216,6 +215,22 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+
+				<!-- COMPILATION -->
+				<!-- http://maven.apache.org/plugins/maven-compiler-plugin/ -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+								<version>${lombok.version}</version>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
 
 				<!-- JAR -->
 				<!-- http://maven.apache.org/plugins/maven-jar-plugin/index.html -->

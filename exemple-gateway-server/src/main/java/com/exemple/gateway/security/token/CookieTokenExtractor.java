@@ -12,20 +12,16 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.exemple.gateway.security.helper.SessionHelper;
 
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @Component
+@RequiredArgsConstructor
 public class CookieTokenExtractor implements ServerAuthenticationConverter {
 
-    private final ServerAuthenticationConverter defaultTokenExtractor;
+    private final ServerAuthenticationConverter defaultTokenExtractor = new ServerBearerTokenAuthenticationConverter();
 
     private final SessionHelper sessionHelper;
-
-    public CookieTokenExtractor(SessionHelper sessionHelper) {
-
-        this.defaultTokenExtractor = new ServerBearerTokenAuthenticationConverter();
-        this.sessionHelper = sessionHelper;
-    }
 
     @Override
     public Mono<Authentication> convert(ServerWebExchange exchange) {

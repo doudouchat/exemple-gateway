@@ -81,13 +81,6 @@
 			<artifactId>java-jwt</artifactId>
 		</dependency>
 
-		<!-- EXCEPTION LAMBDA -->
-
-		<dependency>
-			<groupId>com.pivovarit</groupId>
-			<artifactId>throwing-function</artifactId>
-		</dependency>
-
 		<!-- COMMONS APACHE -->
 
 		<dependency>

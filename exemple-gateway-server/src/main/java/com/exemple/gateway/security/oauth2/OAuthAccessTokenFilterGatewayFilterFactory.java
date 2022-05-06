@@ -28,8 +28,8 @@ import com.auth0.jwt.JWT;
 import com.exemple.gateway.security.helper.SessionHelper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pivovarit.function.ThrowingBiFunction;
 
+import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -61,14 +61,14 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         this.gatewayFilterFactory = new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
                 Collections.emptySet(), Collections.emptySet());
         this.config = new ModifyResponseBodyGatewayFilterFactory.Config().setRewriteFunction(String.class, String.class,
-                (ServerWebExchange e, String b) -> ThrowingBiFunction.sneaky((ServerWebExchange exchange, String previousBody) -> {
+                (ServerWebExchange exchange, String previousBody) -> {
 
                     if (exchange.getResponse().getStatusCode().is2xxSuccessful()) {
-                        saveSession(exchange, MAPPER.readTree(previousBody));
+                        saveSession(exchange, previousBody);
                     }
 
                     return Mono.just(previousBody);
-                }).apply(e, b));
+                });
     }
 
     @Override
@@ -77,7 +77,8 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         return gatewayFilterFactory.apply(this.config);
     }
 
-    private void saveSession(ServerWebExchange exchange, JsonNode body) {
+    @SneakyThrows
+    private void saveSession(ServerWebExchange exchange, String body) {
 
         cleanSessionCookie(exchange);
 
@@ -88,7 +89,7 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
         LOG.debug("session cookie is {}", session.getId());
 
-        saveTokens(session, body);
+        saveTokens(session, MAPPER.readTree(body));
         exchange.getResponse().addCookie(sessionCookie.build());
 
     }

@@ -21,19 +21,17 @@ import org.springframework.security.web.server.util.matcher.OrServerWebExchangeM
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @ComponentScan(basePackages = "com.exemple.gateway.security")
+@RequiredArgsConstructor
 public class GatewaySecurityConfiguration {
-
-    private final String[] excludes;
 
     private final ServerAuthenticationConverter tokenExtractor;
 
-    public GatewaySecurityConfiguration(ServerAuthenticationConverter tokenExtractor, @Value("${gateway.security.excludes:}") String[] excludes) {
-
-        this.tokenExtractor = tokenExtractor;
-        this.excludes = excludes.clone();
-    }
+    @Value("${gateway.security.excludes:}")
+    private final String[] excludes;
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, Customizer<CsrfSpec> csrfCustomizer) {

@@ -14,14 +14,13 @@ import org.springframework.session.SessionRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class SessionHelper {
 
     private final SessionRepository sessionRepository;
-
-    public SessionHelper(SessionRepository sessionRepository) {
-        this.sessionRepository = sessionRepository;
-    }
 
     public Optional<Pair<HttpCookie, Session>> extractSessionCookie(ServerHttpRequest request) {
 

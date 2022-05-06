@@ -9,17 +9,15 @@ import org.springframework.stereotype.Component;
 
 import com.hazelcast.core.HazelcastInstance;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class NotBlackListTokenValidator implements OAuth2TokenValidator<Jwt> {
 
     private final HazelcastInstance hazelcastInstance;
 
     public static final String TOKEN_BLACK_LIST = "token.black_list";
-
-    public NotBlackListTokenValidator(HazelcastInstance hazelcastInstance) {
-
-        this.hazelcastInstance = hazelcastInstance;
-    }
 
     @Override
     public OAuth2TokenValidatorResult validate(Jwt token) {

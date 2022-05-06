@@ -131,24 +131,6 @@
 				<version>1.5.1</version>
 			</dependency>
 
-			<!-- TESTNG -->
-
-			<dependency>
-				<groupId>org.testng</groupId>
-				<artifactId>testng</artifactId>
-				<version>7.4.0</version>
-				<scope>test</scope>
-			</dependency>
-
-			<!-- HAMCREST -->
-
-			<dependency>
-				<groupId>org.hamcrest</groupId>
-				<artifactId>hamcrest-all</artifactId>
-				<version>1.3</version>
-				<scope>test</scope>
-			</dependency>
-
 			<!-- MOCK SERVER -->
 
 			<dependency>
@@ -203,10 +185,23 @@
 			<artifactId>snakeyaml</artifactId>
 		</dependency>
 
-		<!-- TESTNG -->
+		<!-- JUNIT -->
+
 		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+		</dependency>
+
+		<!-- ASSERTJ -->
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
 		</dependency>
 
 	</dependencies>
@@ -247,9 +242,6 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<configuration>
-						<suiteXmlFiles>
-							<suiteXmlFile>testng.xml</suiteXmlFile>
-						</suiteXmlFiles>
 						<argLine>${jacoco.test.agent.argLine}</argLine>
 					</configuration>
 				</plugin>

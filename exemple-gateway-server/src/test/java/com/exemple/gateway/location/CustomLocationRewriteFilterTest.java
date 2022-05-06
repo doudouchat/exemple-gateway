@@ -1,8 +1,10 @@
 package com.exemple.gateway.location;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -11,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import com.exemple.gateway.common.LoggingFilter;
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
@@ -30,7 +30,7 @@ public class CustomLocationRewriteFilterTest extends GatewayServerTestConfigurat
 
     private RequestSpecification requestSpecification;
 
-    @BeforeMethod
+    @BeforeEach
     private void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
@@ -43,6 +43,7 @@ public class CustomLocationRewriteFilterTest extends GatewayServerTestConfigurat
     @Test
     public void location201Rewrite() {
 
+        // Given mock client
         apiClient.when(HttpRequest.request().withMethod("GET").withPath("/ExempleService/info"))
                 .respond(
                         HttpResponse.response()
@@ -50,25 +51,33 @@ public class CustomLocationRewriteFilterTest extends GatewayServerTestConfigurat
                                         new Header("Location", "http://localhost:" + this.apiClient.getPort() + "/ExempleService/123"))
                                 .withStatusCode(201));
 
+        // When perform get
         Response response = requestSpecification.get(restTemplate.getRootUri() + "/ExempleService/info");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.CREATED.value()));
-        assertThat(response.getHeader("Location"), is(restTemplate.getRootUri() + "/ExempleService/123"));
+        // Then check response
+        assertAll(
+                () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED.value()),
+                () -> assertThat(response.getHeader("Location")).isEqualTo(restTemplate.getRootUri() + "/ExempleService/123"));
 
     }
 
     @Test
     public void location302Rewrite() {
 
+        // Given mock client
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/info"))
                 .respond(HttpResponse.response()
                         .withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"),
                                 new Header("Location", "http://localhost:" + this.authorizationClient.getPort() + "/ExempleAuthorization/123"))
                         .withStatusCode(302));
+
+        // When perform post
         Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/info");
 
-        assertThat(response.getStatusCode(), is(HttpStatus.FOUND.value()));
-        assertThat(response.getHeader("Location"), is(restTemplate.getRootUri() + "/ExempleAuthorization/123"));
+        // Then check response
+        assertAll(
+                () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND.value()),
+                () -> assertThat(response.getHeader("Location")).isEqualTo(restTemplate.getRootUri() + "/ExempleAuthorization/123"));
 
     }
 

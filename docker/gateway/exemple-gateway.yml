@@ -1,5 +1,5 @@
 logging:
-   config: file:/usr/local/etc/gateway/logback.groovy
+   config: file:/usr/local/etc/gateway/logback.xml
 gateway:
    security:
       excludes: /ExempleService, /ExempleService/, /*/info, /*/*/info, /*/health, /*/*/health, /*/ws/v1/schemas/**, /*/*/*/openapi.json, /ExempleAuthorization/oauth/*, /*/.well-known/jwks.json

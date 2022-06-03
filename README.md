@@ -13,8 +13,3 @@
 <ol>
 <li>docker build -t exemple-gateway .</li>
 </ol>
-
-<ol>
-<li>docker-compose up -d gateway</li>
-<li>browser: docker-compose -f docker-compose.yml -f docker-compose.browser.yml up -d gateway</li>
-</ol>

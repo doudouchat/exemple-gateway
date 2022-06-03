@@ -10,6 +10,6 @@
 
 ## Docker
 
-<ol>
-<li>docker build -t exemple-gateway .</li>
-</ol>
+<p>build image <code>docker build -t exemple-gateway --build-arg VERSION_OPENJDK=@Tag .</code></p>
+
+<p>exemple build image <code>docker build -t exemple-gateway --build-arg VERSION_OPENJDK=8-jdk-buster .</code>

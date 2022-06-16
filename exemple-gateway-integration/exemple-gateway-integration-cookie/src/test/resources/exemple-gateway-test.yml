@@ -4,9 +4,9 @@ hazelcast:
    port: ${hazelcast.port}
 gateway:
    security:
-      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /*/oauth/*
+      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /*/oauth/*, /*/login
       csrf:
-         excludes: /*/oauth/*
+         excludes: /*/oauth/*, /*/login
 spring:
    hazelcast:
       config: file:${project.build.testOutputDirectory}/hazelcast.yaml

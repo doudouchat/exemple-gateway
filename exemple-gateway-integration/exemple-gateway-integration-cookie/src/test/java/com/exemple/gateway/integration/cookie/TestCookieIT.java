@@ -3,12 +3,14 @@ package com.exemple.gateway.integration.cookie;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import org.apache.commons.codec.binary.Base64;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -41,7 +43,8 @@ public class TestCookieIT {
         Map<String, String> params = new HashMap<>();
         params.put("grant_type", "client_credentials");
 
-        Response response = JsonRestTemplate.given(JsonRestTemplate.APPLICATION_URL, ContentType.URLENC).auth().basic("resource", "secret")
+        Response response = JsonRestTemplate.given(JsonRestTemplate.APPLICATION_URL, ContentType.URLENC)
+                .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes(StandardCharsets.UTF_8)))
                 .formParams(params).post("/oauth/token");
 
         // Then check response
@@ -74,7 +77,8 @@ public class TestCookieIT {
 
                 .cookie("JSESSIONID", sessionId.getValue())
 
-                .auth().basic("resource", "secret").formParams(params).post("/oauth/token");
+                .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes(StandardCharsets.UTF_8)))
+                .formParams(params).post("/oauth/token");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(200);

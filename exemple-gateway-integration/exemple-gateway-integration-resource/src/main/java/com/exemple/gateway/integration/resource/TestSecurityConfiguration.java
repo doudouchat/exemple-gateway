@@ -1,28 +1,31 @@
 package com.exemple.gateway.integration.resource;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.session.MapSessionRepository;
+import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
+import org.springframework.session.web.http.HeaderHttpSessionIdResolver;
+import org.springframework.session.web.http.HttpSessionIdResolver;
 
 @Configuration
-public class TestSecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
+@EnableSpringHttpSession
+public class TestSecurityConfiguration {
 
     @Bean
-    @Override
-    protected UserDetailsService userDetailsService() {
+    public InMemoryUserDetailsManager userDetailsService() {
 
         String password = "{bcrypt}" + BCrypt.hashpw("123", BCrypt.gensalt());
 
@@ -32,26 +35,50 @@ public class TestSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return manager;
     }
 
-    @Override
-    protected void configure(final HttpSecurity http) throws Exception {
+    @Bean
+    public HttpSessionIdResolver httpSessionIdResolver() {
+        return HeaderHttpSessionIdResolver.xAuthToken();
+    }
+
+    @Bean
+    public MapSessionRepository sessionRepository() {
+        return new MapSessionRepository(new ConcurrentHashMap<>());
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+
+        AbstractUserDetailsAuthenticationProvider provider = new AbstractUserDetailsAuthenticationProvider() {
+
+            @Override
+            protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) {
+                // NOP
+            }
+
+            @Override
+            protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) {
+                return userDetailsService().loadUserByUsername(username);
+            }
+        };
+
+        return new ProviderManager(provider);
+
+    }
+
+    @Bean
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        UsernamePasswordAuthenticationFilter filter = new UsernamePasswordAuthenticationFilter();
+        filter.setAuthenticationManager(authenticationManager());
 
         http
-
+                .addFilter(filter)
                 .authorizeRequests()
-
-                .antMatchers(HttpMethod.GET, "/**").hasAnyAuthority("SCOPE_test:read")
-
-                .antMatchers(HttpMethod.POST, "/**").hasAnyAuthority("SCOPE_test:create")
-
-                .antMatchers(HttpMethod.DELETE, "/**").hasAnyAuthority("SCOPE_test:delete")
-
-                .antMatchers(HttpMethod.PATCH, "/**").hasAnyAuthority("SCOPE_test:update")
-
                 .anyRequest().authenticated().and()
-
                 .oauth2ResourceServer().jwt().and().and()
-
                 .csrf().disable();
+
+        return http.build();
 
     }
 

@@ -67,7 +67,7 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
                         saveSession(exchange, previousBody);
                     }
 
-                    return Mono.just(previousBody);
+                    return Mono.justOrEmpty(previousBody);
                 });
     }
 

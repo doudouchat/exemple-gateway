@@ -287,4 +287,19 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     }
 
+    @Test
+    public void tokenUnauthorized() {
+
+        // Given mock client
+        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
+                .respond(HttpResponse.response().withStatusCode(401));
+
+        // When perform post
+        Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+
+    }
+
 }

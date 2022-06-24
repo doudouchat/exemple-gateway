@@ -14,8 +14,6 @@ import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.JsonBody;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -30,10 +28,10 @@ import com.hazelcast.core.HazelcastInstance;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SecurityAuthorizationHeaderTest.class);
 
     @Autowired
     private TestRestTemplate restTemplate;

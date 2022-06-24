@@ -1,7 +1,5 @@
 package com.exemple.gateway.integration.resource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +16,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
 @RequestMapping(value = "/ws/test")
+@Slf4j
 public class TestApi {
-
-    private static final Logger LOG = LoggerFactory.getLogger(TestApi.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 

@@ -11,8 +11,6 @@ import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.JsonBody;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -22,10 +20,10 @@ import com.exemple.gateway.common.LoggingFilter;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class RoutesTest extends GatewayServerTestConfiguration {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RoutesTest.class);
 
     @Autowired
     private TestRestTemplate restTemplate;

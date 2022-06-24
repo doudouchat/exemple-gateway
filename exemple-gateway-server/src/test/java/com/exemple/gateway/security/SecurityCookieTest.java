@@ -27,8 +27,6 @@ import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.JsonBody;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -44,12 +42,12 @@ import io.restassured.RestAssured;
 import io.restassured.http.Cookie;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import lombok.extern.slf4j.Slf4j;
 
 @ActiveProfiles("browser")
 @TestMethodOrder(OrderAnnotation.class)
+@Slf4j
 public class SecurityCookieTest extends GatewayServerTestConfiguration {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SecurityCookieTest.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 

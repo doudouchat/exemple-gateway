@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -20,10 +18,10 @@ import com.exemple.gateway.core.GatewayServerTestConfiguration;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CustomLocationRewriteFilterTest extends GatewayServerTestConfiguration {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CustomLocationRewriteFilterTest.class);
 
     @Autowired
     private TestRestTemplate restTemplate;

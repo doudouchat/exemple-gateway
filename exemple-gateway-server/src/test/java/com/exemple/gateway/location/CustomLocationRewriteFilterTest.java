@@ -21,7 +21,7 @@ import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CustomLocationRewriteFilterTest extends GatewayServerTestConfiguration {
+class CustomLocationRewriteFilterTest extends GatewayServerTestConfiguration {
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -39,7 +39,7 @@ public class CustomLocationRewriteFilterTest extends GatewayServerTestConfigurat
     }
 
     @Test
-    public void location201Rewrite() {
+    void location201Rewrite() {
 
         // Given mock client
         apiClient.when(HttpRequest.request().withMethod("GET").withPath("/ExempleService/info"))
@@ -60,7 +60,7 @@ public class CustomLocationRewriteFilterTest extends GatewayServerTestConfigurat
     }
 
     @Test
-    public void location302Rewrite() {
+    void location302Rewrite() {
 
         // Given mock client
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/info"))

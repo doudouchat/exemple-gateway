@@ -31,7 +31,7 @@ import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
+class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -54,7 +54,7 @@ public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfigurat
     }
 
     @Test
-    public void securitySuccess() {
+    void securitySuccess() {
 
         // Given build token
         String token = JWT.create().withJWTId(UUID.randomUUID().toString()).withClaim("user_name", "john_doe").withAudience("test")
@@ -75,7 +75,7 @@ public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfigurat
     }
 
     @Test
-    public void securityFailureExpiredTime() {
+    void securityFailureExpiredTime() {
 
         // Given build token
         String token = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
@@ -91,7 +91,7 @@ public class SecurityAuthorizationHeaderTest extends GatewayServerTestConfigurat
     }
 
     @Test
-    public void securityFailureTokenInBlackList() {
+    void securityFailureTokenInBlackList() {
 
         // Given build token
         String jwtId = UUID.randomUUID().toString();

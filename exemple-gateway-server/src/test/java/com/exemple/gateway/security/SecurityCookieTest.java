@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @ActiveProfiles("browser")
 @TestMethodOrder(OrderAnnotation.class)
 @Slf4j
-public class SecurityCookieTest extends GatewayServerTestConfiguration {
+class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -71,7 +71,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
     private Clock clock;
 
     @BeforeAll
-    public void init() {
+    void init() {
 
         ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
                 .withExpiresAt(Date.from(Instant.now(clock).plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
@@ -98,7 +98,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     @Test
     @Order(1)
-    public void token() throws IOException {
+    void token() throws IOException {
 
         // Given mock client
         Map<String, Object> responseBody = new HashMap<>();
@@ -135,7 +135,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     @Test
     @Order(2)
-    public void securitySuccess() {
+    void securitySuccess() {
 
         // Given mock client
         apiClient
@@ -156,7 +156,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    public void securitySuccessWithSessionIdInHeader() throws IOException {
+    void securitySuccessWithSessionIdInHeader() throws IOException {
 
         // Given build cookie
         Map<String, Object> responseBody = new HashMap<>();
@@ -203,7 +203,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
     @ParameterizedTest
     @MethodSource
     @Order(2)
-    public void securityFailures(String accessToken, String csrfToken, HttpStatus expectedHttpStatus) throws IOException {
+    void securityFailures(String accessToken, String csrfToken, HttpStatus expectedHttpStatus) throws IOException {
 
         // Given build cookie
         Map<String, Object> responseBody = new HashMap<>();
@@ -228,7 +228,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    public void cookieFailure() throws IOException {
+    void cookieFailure() throws IOException {
 
         // Given build cookie
         Map<String, Object> responseBody = new HashMap<>();
@@ -249,7 +249,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    public void tokenEmpty() throws IOException {
+    void tokenEmpty() throws IOException {
 
         // Given mock client
         Map<String, Object> responseBody = new HashMap<>();
@@ -271,7 +271,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    public void tokenFailure() {
+    void tokenFailure() {
 
         // Given mock client
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
@@ -286,7 +286,7 @@ public class SecurityCookieTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    public void tokenUnauthorized() {
+    void tokenUnauthorized() {
 
         // Given mock client
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))

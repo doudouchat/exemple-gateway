@@ -19,7 +19,7 @@ import com.exemple.gateway.integration.resource.TestAlgorithmConfiguration;
 
 import io.restassured.response.Response;
 
-public class TestIT {
+class TestIT {
 
     private static final String URL = "/ws/test";
 
@@ -38,7 +38,7 @@ public class TestIT {
     }
 
     @Test
-    public void post() {
+    void post() {
 
         // When perform post
         Map<String, Object> body = new HashMap<>();
@@ -55,7 +55,7 @@ public class TestIT {
     }
 
     @Test
-    public void head() {
+    void head() {
 
         // When perform head
         Response response = JsonRestTemplate.given()
@@ -70,7 +70,7 @@ public class TestIT {
     }
 
     @Test
-    public void get() {
+    void get() {
 
         // When perform get
         Response response = JsonRestTemplate.given()
@@ -85,7 +85,7 @@ public class TestIT {
     }
 
     @Test
-    public void delete() {
+    void delete() {
 
         // When perform delete
         Response response = JsonRestTemplate.given()
@@ -100,7 +100,7 @@ public class TestIT {
     }
 
     @Test
-    public void patch() {
+    void patch() {
 
         // When perform patch
         Map<String, Object> patch = new HashMap<>();
@@ -120,7 +120,7 @@ public class TestIT {
     }
 
     @Test
-    public void options() {
+    void options() {
 
         // When perform options
         Response response = JsonRestTemplate.given()

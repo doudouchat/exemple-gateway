@@ -23,7 +23,7 @@ import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class RoutesTest extends GatewayServerTestConfiguration {
+class RoutesTest extends GatewayServerTestConfiguration {
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -41,7 +41,7 @@ public class RoutesTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    public void api() {
+    void api() {
 
         // Given mock client
         apiClient.when(HttpRequest.request().withMethod("GET").withPath("/ExempleService/info"))
@@ -59,7 +59,7 @@ public class RoutesTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    public void authorization() {
+    void authorization() {
 
         // Given mock client
         authorizationClient.when(HttpRequest.request().withMethod("GET").withPath("/ExempleAuthorization/info"))

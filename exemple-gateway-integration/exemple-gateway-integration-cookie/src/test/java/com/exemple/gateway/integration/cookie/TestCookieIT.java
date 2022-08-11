@@ -28,7 +28,7 @@ import io.restassured.response.Response;
 
 @TestMethodOrder(OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestCookieIT {
+class TestCookieIT {
 
     private static final String URL = "/ws/test";
 
@@ -37,7 +37,7 @@ public class TestCookieIT {
 
     @Test
     @Order(1)
-    public void token() {
+    void token() {
 
         // When perform post
         Map<String, String> params = new HashMap<>();
@@ -67,7 +67,7 @@ public class TestCookieIT {
 
     @Test
     @Order(3)
-    public void retryToken() {
+    void retryToken() {
 
         // When perform post
         Map<String, String> params = new HashMap<>();
@@ -87,7 +87,7 @@ public class TestCookieIT {
 
     @Test
     @Order(2)
-    public void post() {
+    void post() {
 
         // When perform post
         Map<String, Object> body = new HashMap<>();
@@ -116,7 +116,7 @@ public class TestCookieIT {
     @ParameterizedTest
     @MethodSource
     @Order(2)
-    public void postFailure(String jsessionId, String xrsfToken, int expectedStatus) {
+    void postFailure(String jsessionId, String xrsfToken, int expectedStatus) {
 
         // When perform post
         Map<String, Object> body = new HashMap<>();
@@ -137,7 +137,7 @@ public class TestCookieIT {
 
     @Test
     @Order(2)
-    public void head() {
+    void head() {
 
         // When perform head
         Response response = JsonRestTemplate.given()
@@ -155,7 +155,7 @@ public class TestCookieIT {
 
     @Test
     @Order(2)
-    public void get() {
+    void get() {
 
         // When perform get
         Response response = JsonRestTemplate.given()
@@ -171,7 +171,7 @@ public class TestCookieIT {
 
     @Test
     @Order(2)
-    public void delete() {
+    void delete() {
 
         // When perform delete
         Response response = JsonRestTemplate.given()
@@ -189,7 +189,7 @@ public class TestCookieIT {
 
     @Test
     @Order(2)
-    public void patch() {
+    void patch() {
 
         // When perform patch
         Map<String, Object> patch = new HashMap<>();
@@ -212,7 +212,7 @@ public class TestCookieIT {
 
     @Test
     @Order(2)
-    public void options() {
+    void options() {
 
         // When perform options
         Response response = JsonRestTemplate.given()

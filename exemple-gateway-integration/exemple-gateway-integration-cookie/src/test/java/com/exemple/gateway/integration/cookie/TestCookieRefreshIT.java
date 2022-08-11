@@ -25,7 +25,7 @@ import io.restassured.response.Response;
 
 @TestMethodOrder(OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestCookieRefreshIT {
+class TestCookieRefreshIT {
 
     private static final String URL = "/ws/test";
 
@@ -41,7 +41,7 @@ public class TestCookieRefreshIT {
 
     @Test
     @Order(1)
-    public void token() throws JsonProcessingException {
+    void token() throws JsonProcessingException {
 
         // Given login
 
@@ -107,7 +107,7 @@ public class TestCookieRefreshIT {
 
     @Test
     @Order(2)
-    public void get() {
+    void get() {
 
         // When perform get
         Response response = JsonRestTemplate.given()

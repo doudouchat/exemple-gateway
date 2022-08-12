@@ -43,30 +43,30 @@ public class TestAlgorithmConfiguration {
     @Bean
     public RSAPublicKey rsaPublicKey() throws GeneralSecurityException {
 
-        String key = new String(publicKeyContent, StandardCharsets.UTF_8);
+        var key = new String(publicKeyContent, StandardCharsets.UTF_8);
 
         String publicKeyPEM = key.replace("-----BEGIN PUBLIC KEY-----", "").replaceAll(System.lineSeparator(), "").replace("-----END PUBLIC KEY-----",
                 "");
 
         byte[] encoded = Base64.decodeBase64(publicKeyPEM);
 
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
+        var keyFactory = KeyFactory.getInstance("RSA");
+        var keySpec = new X509EncodedKeySpec(encoded);
         return (RSAPublicKey) keyFactory.generatePublic(keySpec);
     }
 
     @Bean
     public RSAPrivateKey rsaPrivateKey() throws GeneralSecurityException {
 
-        String key = new String(privateKeyContent, StandardCharsets.UTF_8);
+        var key = new String(privateKeyContent, StandardCharsets.UTF_8);
 
         String privateKeyPEM = key.replace("-----BEGIN PRIVATE KEY-----", "").replaceAll(System.lineSeparator(), "")
                 .replace("-----END PRIVATE KEY-----", "");
 
         byte[] encoded = Base64.decodeBase64(privateKeyPEM);
 
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
+        var keyFactory = KeyFactory.getInstance("RSA");
+        var keySpec = new PKCS8EncodedKeySpec(encoded);
         return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
     }
 }

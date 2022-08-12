@@ -58,7 +58,7 @@ public class TestAuthorizationConfiguration {
 
         String password = "{bcrypt}" + BCrypt.hashpw("secret", BCrypt.gensalt());
 
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        var registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("resource")
                 .clientSecret(password)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
@@ -90,11 +90,11 @@ public class TestAuthorizationConfiguration {
 
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
-        RSAKey rsaKey = new RSAKey.Builder(publicKey)
+        var rsaKey = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
                 .keyID(UUID.randomUUID().toString())
                 .build();
-        JWKSet jwkSet = new JWKSet(rsaKey);
+        var jwkSet = new JWKSet(rsaKey);
         return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
     }
 

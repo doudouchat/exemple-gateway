@@ -95,11 +95,11 @@ public final class JsonRestTemplate {
                     Collections.emptySet(), buildLogPrint(), true);
             LOG.debug("Request {}\n{}", counter, requestLog);
 
-            OffsetDateTime start = OffsetDateTime.now();
+            var start = OffsetDateTime.now();
 
-            Response response = ctx.next(requestSpec, responseSpec);
+            var response = ctx.next(requestSpec, responseSpec);
 
-            OffsetDateTime end = OffsetDateTime.now();
+            var end = OffsetDateTime.now();
 
             long duration = ChronoUnit.MILLIS.between(start, end);
 

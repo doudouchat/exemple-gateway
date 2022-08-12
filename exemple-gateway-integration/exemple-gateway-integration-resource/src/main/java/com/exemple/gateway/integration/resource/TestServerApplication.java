@@ -21,7 +21,7 @@ public class TestServerApplication extends SpringBootServletInitializer {
 
     @Bean
     public CommonsRequestLoggingFilter logFilter() {
-        CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();
+        var filter = new CommonsRequestLoggingFilter();
         filter.setIncludeQueryString(true);
         filter.setIncludePayload(true);
         filter.setIncludeHeaders(true);
@@ -31,7 +31,7 @@ public class TestServerApplication extends SpringBootServletInitializer {
     @Bean
     public HazelcastInstance hazelcastInstance(@Value("${hazelcast.port}") int port) {
 
-        Config config = new Config();
+        var config = new Config();
         config.getNetworkConfig().setPort(port);
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
         config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);

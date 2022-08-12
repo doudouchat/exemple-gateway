@@ -29,7 +29,7 @@ public class TestSecurityConfiguration {
 
         String password = "{bcrypt}" + BCrypt.hashpw("123", BCrypt.gensalt());
 
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        var manager = new InMemoryUserDetailsManager();
         manager.createUser(User.withUsername("jean.dupond@gmail.com").password(password).authorities("USER").build());
 
         return manager;
@@ -68,7 +68,7 @@ public class TestSecurityConfiguration {
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
-        UsernamePasswordAuthenticationFilter filter = new UsernamePasswordAuthenticationFilter();
+        var filter = new UsernamePasswordAuthenticationFilter();
         filter.setAuthenticationManager(authenticationManager());
 
         http

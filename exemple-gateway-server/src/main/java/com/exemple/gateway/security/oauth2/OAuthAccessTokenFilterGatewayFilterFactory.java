@@ -82,7 +82,7 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
         Pair<ResponseCookieBuilder, Session> cookieAndSession = extractSessionCookie(exchange);
 
-        Session session = cookieAndSession.getRight();
+        var session = cookieAndSession.getRight();
         ResponseCookieBuilder sessionCookie = cookieAndSession.getLeft();
 
         LOG.debug("session cookie is {}", session.getId());
@@ -96,7 +96,7 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
         return sessionHelper.extractSessionCookie(exchange.getRequest())
                 .map(p -> Pair.of(ResponseCookie.from(p.getKey().getName(), p.getKey().getValue()), p.getValue())).orElseGet(() -> {
-                    Session session = repository.createSession();
+                    var session = repository.createSession();
                     return Pair.of(createSessionCookie(exchange.getRequest(), session.getId()), session);
                 });
     }

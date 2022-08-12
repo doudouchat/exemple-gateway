@@ -19,7 +19,7 @@ public class AccessTokenRelayGatewayFilterFactory extends AbstractGatewayFilterF
     }
 
     private static Mono<JwtAuthenticationToken> extractJwtAuthenticationToken(ServerWebExchange exchange) {
-        return exchange.getPrincipal().filter(principal -> principal instanceof JwtAuthenticationToken).cast(JwtAuthenticationToken.class);
+        return exchange.getPrincipal().filter(JwtAuthenticationToken.class::isInstance).cast(JwtAuthenticationToken.class);
     }
 
     private static ServerWebExchange withBearerAuth(ServerWebExchange exchange, JwtAuthenticationToken accessToken) {

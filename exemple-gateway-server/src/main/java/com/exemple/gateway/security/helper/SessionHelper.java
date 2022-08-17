@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SessionHelper {
 
-    private final SessionRepository sessionRepository;
+    private final SessionRepository<Session> sessionRepository;
 
     public Optional<Pair<HttpCookie, Session>> extractSessionCookie(ServerHttpRequest request) {
 

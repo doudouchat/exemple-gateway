@@ -41,7 +41,7 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
     private static final String REFRESH_TOKEN = "refresh_token";
 
-    private final SessionRepository repository;
+    private final SessionRepository<Session> repository;
 
     private final SessionHelper sessionHelper;
 
@@ -51,7 +51,7 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
     private final Clock clock;
 
-    public OAuthAccessTokenFilterGatewayFilterFactory(SessionRepository repository, SessionHelper sessionHelper, Clock clock) {
+    public OAuthAccessTokenFilterGatewayFilterFactory(SessionRepository<Session> repository, SessionHelper sessionHelper, Clock clock) {
         super(Object.class);
         this.repository = repository;
         this.sessionHelper = sessionHelper;

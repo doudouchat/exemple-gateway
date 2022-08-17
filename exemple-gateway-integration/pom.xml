@@ -231,18 +231,6 @@
 									</portNames>
 								</configuration>
 							</execution>
-							<execution>
-								<id>add-source</id>
-								<goals>
-									<goal>add-source</goal>
-								</goals>
-								<phase>pre-integration-test</phase>
-								<configuration>
-									<sources>
-										<source>${project.parent.basedir}/exemple-gateway-server/src/main/java</source>
-									</sources>
-								</configuration>
-							</execution>
 						</executions>
 					</plugin>
 
@@ -257,8 +245,6 @@
 									<goal>report-integration</goal>
 								</goals>
 								<configuration>
-									<dataFile>${sonar.jacoco.itReportPath}</dataFile>
-									<outputDirectory>${project.parent.parent.reporting.outputDirectory}/jacoco-it</outputDirectory>
 									<excludes>
 										<exclude>com/exemple/gateway/integration/**</exclude>
 									</excludes>

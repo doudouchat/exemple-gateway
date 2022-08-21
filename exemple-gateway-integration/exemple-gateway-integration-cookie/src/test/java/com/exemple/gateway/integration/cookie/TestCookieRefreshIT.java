@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,11 +75,11 @@ class TestCookieRefreshIT {
 
         // And perform token
 
-        Map<String, String> params = new HashMap<>();
-        params.put("grant_type", "authorization_code");
-        params.put("code", code);
-        params.put("client_id", "resource");
-        params.put("redirect_uri", "http://xxx");
+        Map<String, String> params = Map.of(
+                "grant_type", "authorization_code",
+                "code", code,
+                "client_id", "resource",
+                "redirect_uri", "http://xxx");
 
         Response responseToken = JsonRestTemplate.given(JsonRestTemplate.APPLICATION_URL, ContentType.URLENC)
                 .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes(StandardCharsets.UTF_8)))

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -40,8 +39,7 @@ class TestCookieIT {
     void token() {
 
         // When perform post
-        Map<String, String> params = new HashMap<>();
-        params.put("grant_type", "client_credentials");
+        Map<String, String> params = Map.of("grant_type", "client_credentials");
 
         Response response = JsonRestTemplate.given(JsonRestTemplate.APPLICATION_URL, ContentType.URLENC)
                 .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes(StandardCharsets.UTF_8)))
@@ -70,8 +68,7 @@ class TestCookieIT {
     void retryToken() {
 
         // When perform post
-        Map<String, String> params = new HashMap<>();
-        params.put("grant_type", "client_credentials");
+        Map<String, String> params = Map.of("grant_type", "client_credentials");
 
         Response response = JsonRestTemplate.given(JsonRestTemplate.APPLICATION_URL, ContentType.URLENC)
 
@@ -90,8 +87,7 @@ class TestCookieIT {
     void post() {
 
         // When perform post
-        Map<String, Object> body = new HashMap<>();
-        body.put("value", UUID.randomUUID());
+        Map<String, Object> body = Map.of("value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.given()
 
@@ -119,8 +115,7 @@ class TestCookieIT {
     void postFailure(String jsessionId, String xrsfToken, int expectedStatus) {
 
         // When perform post
-        Map<String, Object> body = new HashMap<>();
-        body.put("value", UUID.randomUUID());
+        Map<String, Object> body = Map.of("value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.given()
 
@@ -192,10 +187,10 @@ class TestCookieIT {
     void patch() {
 
         // When perform patch
-        Map<String, Object> patch = new HashMap<>();
-        patch.put("op", "replace");
-        patch.put("path", "/value");
-        patch.put("value", UUID.randomUUID());
+        Map<String, Object> patch = Map.of(
+                "op", "replace",
+                "path", "/value",
+                "value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.given()
 

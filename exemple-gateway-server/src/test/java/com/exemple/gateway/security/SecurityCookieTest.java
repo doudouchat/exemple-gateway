@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -101,10 +100,10 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     void token() throws IOException {
 
         // Given mock client
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("access_token", ACCESS_TOKEN);
-        responseBody.put("refresh_token", REFRESH_TOKEN);
-        responseBody.put("scope", "account:read");
+        Map<String, Object> responseBody = Map.of(
+                "access_token", ACCESS_TOKEN,
+                "refresh_token", REFRESH_TOKEN,
+                "scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
                 .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
@@ -159,10 +158,10 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     void securitySuccessWithSessionIdInHeader() throws IOException {
 
         // Given build cookie
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("access_token", ACCESS_TOKEN);
-        responseBody.put("refresh_token", REFRESH_TOKEN);
-        responseBody.put("scope", "account:read");
+        Map<String, Object> responseBody = Map.of(
+                "access_token", ACCESS_TOKEN,
+                "refresh_token", REFRESH_TOKEN,
+                "scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
                 .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
@@ -206,10 +205,10 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     void securityFailures(String accessToken, String csrfToken, HttpStatus expectedHttpStatus) throws IOException {
 
         // Given build cookie
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("access_token", accessToken);
-        responseBody.put("refresh_token", REFRESH_TOKEN);
-        responseBody.put("scope", "account:read");
+        Map<String, Object> responseBody = Map.of(
+                "access_token", accessToken,
+                "refresh_token", REFRESH_TOKEN,
+                "scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
                 .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(HttpStatus.OK.value()));
@@ -231,8 +230,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     void cookieFailure() throws IOException {
 
         // Given build cookie
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("access_token", ACCESS_TOKEN);
+        Map<String, Object> responseBody = Map.of("access_token", ACCESS_TOKEN);
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
                 .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(HttpStatus.UNAUTHORIZED.value()));
@@ -252,8 +250,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     void tokenEmpty() throws IOException {
 
         // Given mock client
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("scope", "account:read");
+        Map<String, Object> responseBody = Map.of("scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
                 .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));

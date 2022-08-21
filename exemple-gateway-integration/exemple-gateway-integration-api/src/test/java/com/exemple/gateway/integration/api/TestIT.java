@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,8 +40,7 @@ class TestIT {
     void post() {
 
         // When perform post
-        Map<String, Object> body = new HashMap<>();
-        body.put("value", UUID.randomUUID());
+        Map<String, Object> body = Map.of("value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.given()
 
@@ -103,10 +101,10 @@ class TestIT {
     void patch() {
 
         // When perform patch
-        Map<String, Object> patch = new HashMap<>();
-        patch.put("op", "replace");
-        patch.put("path", "/value");
-        patch.put("value", UUID.randomUUID());
+        Map<String, Object> patch = Map.of(
+                "op", "replace",
+                "path", "/value",
+                "value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.given()
 

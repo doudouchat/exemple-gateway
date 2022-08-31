@@ -1,7 +1,6 @@
 package com.exemple.gateway.security;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -60,7 +59,8 @@ public class GatewaySecurityConfiguration {
 
             requireCsrfProtectionMatcher = new AndServerWebExchangeMatcher(CsrfWebFilter.DEFAULT_CSRF_MATCHER,
                     new NegatedServerWebExchangeMatcher(new OrServerWebExchangeMatcher(
-                            Arrays.stream(excludesCsrf).map(PathPatternParserServerWebExchangeMatcher::new).collect(Collectors.toList()))));
+                            Arrays.stream(excludesCsrf).map(PathPatternParserServerWebExchangeMatcher::new).map(ServerWebExchangeMatcher.class::cast)
+                                    .toList())));
         }
 
         @Bean

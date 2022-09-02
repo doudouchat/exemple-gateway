@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.session.MapSessionRepository;
 import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
 import org.springframework.session.web.http.HeaderHttpSessionIdResolver;
@@ -76,7 +77,7 @@ public class TestSecurityConfiguration {
                 .authorizeRequests()
                 .anyRequest().authenticated().and()
                 .oauth2ResourceServer().jwt().and().and()
-                .csrf().disable();
+                .csrf(csrf -> csrf.ignoringRequestMatchers(new AntPathRequestMatcher("/login")));
 
         return http.build();
 

@@ -8,58 +8,28 @@
 		<version>2.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>exemple-gateway-integration</artifactId>
-	<packaging>pom</packaging>
-
-	<modules>
-		<module>exemple-gateway-integration-common</module>
-		<module>exemple-gateway-integration-resource</module>
-		<module>exemple-gateway-integration-api</module>
-		<module>exemple-gateway-integration-cookie</module>
-	</modules>
 
 	<properties>
 
-		<!-- TOMCAT -->
-		<tomcat.container.id>tomcat9x</tomcat.container.id>
-
-		<application.log.file>${project.build.testOutputDirectory}/logback.xml</application.log.file>
-		<application.contextpath></application.contextpath>
 		<application.host>http://localhost</application.host>
 
 		<test.contextpath>Test</test.contextpath>
-		<test.host>http://localhost</test.host>
-
-		<!-- GATEWAY -->
-		<gateway.name>exemple-gateway-configuration</gateway.name>
-		<gateway.path>${project.build.testOutputDirectory}/exemple-gateway-test.yml</gateway.path>
-
-		<!-- API -->
-		<hazelcast.port>5705</hazelcast.port>
+		<test.path>${project.build.testOutputDirectory}/exemple-gateway-test.yml</test.path>
 
 		<!-- SONAR -->
 		<sonar.coverage.exclusions>**/*.java</sonar.coverage.exclusions>
 
 	</properties>
 
-	<dependencyManagement>
-
-		<dependencies>
-
-			<!-- TOMCAT -->
-
-			<dependency>
-				<groupId>org.apache.tomcat</groupId>
-				<artifactId>tomcat</artifactId>
-				<version>${tomcat.version}</version>
-				<type>pom</type>
-				<scope>provided</scope>
-			</dependency>
-
-		</dependencies>
-
-	</dependencyManagement>
-
 	<dependencies>
+
+		<!-- RESOURCE TEST -->
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>exemple-gateway-integration-resource</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- GROOVY -->
 
@@ -73,105 +43,56 @@
 			<artifactId>groovy-xml</artifactId>
 		</dependency>
 
+		<!-- JWT TOKEN -->
+
+		<dependency>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+		</dependency>
+
+		<!-- COMMONS APACHE -->
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+
+		<!-- REST ASSURED -->
+
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- TEST -->
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
 
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+			</testResource>
+		</testResources>
+
 		<pluginManagement>
 
 			<plugins>
-
-				<!-- SPRING BOOT -->
-				<!-- https://docs.spring.io/spring-boot/docs/current/maven-plugin/index.html -->
-				<plugin>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-maven-plugin</artifactId>
-					<configuration>
-						<jvmArguments>${jacoco.it.agent.argLine}</jvmArguments>
-						<jmxPort>${application.jmx.port}</jmxPort>
-						<wait>3000</wait>
-						<fork>true</fork>
-						<mainClass>com.exemple.gateway.core.GatewayServerApplication</mainClass>
-						<arguments>
-							<argument>--server.port=${application.port}</argument>
-							<argument>--server.servlet.context-path=/${application.contextpath}</argument>
-							<argument>--spring.config.location=${gateway.path}</argument>
-						</arguments>
-					</configuration>
-					<executions>
-						<execution>
-							<id>pre-integration-test</id>
-							<goals>
-								<goal>start</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>post-integration-test</id>
-							<goals>
-								<goal>stop</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-
-				<!-- CARGO -->
-				<!-- https://codehaus-cargo.github.io/cargo/Maven2+plugin.html -->
-				<plugin>
-					<groupId>org.codehaus.cargo</groupId>
-					<artifactId>cargo-maven3-plugin</artifactId>
-					<version>1.9.3</version>
-					<configuration>
-						<container>
-							<containerId>${tomcat.container.id}</containerId>
-							<output>${project.build.directory}/cargo/configurations/${tomcat.container.id}/logs/container.log</output>
-							<timeout>180000</timeout>
-							<artifactInstaller>
-								<groupId>org.apache.tomcat</groupId>
-								<artifactId>tomcat</artifactId>
-								<version>${tomcat.version}</version>
-							</artifactInstaller>
-						</container>
-						<configuration>
-							<properties>
-								<cargo.servlet.port>${test.port}</cargo.servlet.port>
-								<cargo.rmi.port>${cargo.rmi.port}</cargo.rmi.port>
-								<cargo.tomcat.ajp.port>${cargo.ajp.port}</cargo.tomcat.ajp.port>
-								<cargo.jvmargs>-Dlogging.config=file:${application.log.file}</cargo.jvmargs>
-							</properties>
-						</configuration>
-					</configuration>
-					<executions>
-						<!-- start server before integration tests -->
-						<execution>
-							<id>start-container</id>
-							<phase>pre-integration-test</phase>
-							<goals>
-								<goal>start</goal>
-							</goals>
-						</execution>
-						<!-- stop server after integration tests -->
-						<execution>
-							<id>stop-container</id>
-							<phase>post-integration-test</phase>
-							<goals>
-								<goal>stop</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
 
 				<!-- TEST INTEGRATION -->
 				<!-- http://maven.apache.org/surefire/maven-failsafe-plugin/ -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-failsafe-plugin</artifactId>
-					<configuration>
-						<systemPropertyVariables>
-							<application.host>${application.host}</application.host>
-							<application.port>${application.port}</application.port>
-							<application.contextpath>${test.contextpath}</application.contextpath>
-						</systemPropertyVariables>
-					</configuration>
 					<executions>
 						<execution>
 							<goals>
@@ -223,13 +144,18 @@
 								<configuration>
 									<portNames>
 										<portName>application.port</portName>
+										<portName>application.browser.port</portName>
+										<portName>test.jmx.port</portName>
 										<portName>test.port</portName>
-										<portName>application.jmx.port</portName>
-										<portName>cargo.rmi.port</portName>
-										<portName>cargo.ajp.port</portName>
 										<portName>hazelcast.port</portName>
 									</portNames>
 								</configuration>
+							</execution>
+							<execution>
+								<id>get-local-ip</id>
+								<goals>
+									<goal>local-ip</goal>
+								</goals>
 							</execution>
 						</executions>
 					</plugin>
@@ -253,9 +179,211 @@
 						</executions>
 					</plugin>
 
+					<!-- SPRING BOOT -->
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<configuration>
+							<wait>3000</wait>
+							<fork>true</fork>
+							<jmxPort>${test.jmx.port}</jmxPort>
+							<mainClass>com.exemple.gateway.integration.resource.TestServerApplication</mainClass>
+							<arguments>
+								<argument>--server.port=${test.port}</argument>
+								<argument>--server.servlet.context-path=/${test.contextpath}</argument>
+								<argument>--spring.config.location=${test.path}</argument>
+							</arguments>
+						</configuration>
+						<executions>
+							<execution>
+								<id>pre-integration-test</id>
+								<goals>
+									<goal>start</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>post-integration-test</id>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- DOCKER -->
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>start_hazelcast</id>
+								<goals>
+									<goal>start</goal>
+								</goals>
+								<configuration>
+									<images>
+										<image>
+											<name>hazelcast/hazelcast:4.2.5</name>
+											<alias>hazelcast</alias>
+											<run>
+												<ports>
+													<port>${hazelcast.port}:5701</port>
+												</ports>
+												<wait>
+													<time>10000</time>
+												</wait>
+												<log>
+													<date>default</date>
+												</log>
+											</run>
+										</image>
+									</images>
+								</configuration>
+							</execution>
+							<execution>
+								<id>start_exemple_gateway</id>
+								<goals>
+									<goal>start</goal>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<images>
+										<image>
+											<name>exemple-gateway</name>
+											<alias>exemple-gateway</alias>
+											<run>
+												<ports>
+													<port>${application.port}:8080</port>
+												</ports>
+												<env>
+													<spring.config.location>/usr/local/etc/gateway/exemple-gateway.yml</spring.config.location>
+													<server.servlet.context-path>/</server.servlet.context-path>
+												</env>
+												<volumes>
+													<bind>
+														<volume>${project.build.testOutputDirectory}/conf:/usr/local/etc/gateway</volume>
+														<volume>${project.parent.basedir}/exemple-gateway-integration-resource/src/main/resources:/usr/local/etc/gateway/key</volume>
+													</bind>
+												</volumes>
+												<wait>
+													<http>
+														<url>http://localhost:${application.port}/actuator/health</url>
+														<method>GET</method>
+														<status>200</status>
+													</http>
+													<time>30000</time>
+												</wait>
+												<log>
+													<date>default</date>
+												</log>
+												<extraHosts>
+													<host>host.docker.internal:${local.ip}</host>
+												</extraHosts>
+											</run>
+											<copy>
+												<entries>
+													<entry>
+														<containerPath>tmp/logs</containerPath>
+														<hostDirectory>${project.build.directory}/api</hostDirectory>
+													</entry>
+												</entries>
+											</copy>
+										</image>
+									</images>
+								</configuration>
+							</execution>
+							<execution>
+								<id>start_exemple_gateway_browser</id>
+								<goals>
+									<goal>start</goal>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<images>
+										<image>
+											<name>exemple-gateway</name>
+											<alias>exemple-gateway-browser</alias>
+											<run>
+												<ports>
+													<port>${application.browser.port}:8080</port>
+												</ports>
+												<env>
+													<spring.config.location>/usr/local/etc/gateway/exemple-gateway.yml</spring.config.location>
+													<server.servlet.context-path>/</server.servlet.context-path>
+													<spring.profiles.active>browser</spring.profiles.active>
+												</env>
+												<volumes>
+													<bind>
+														<volume>${project.build.testOutputDirectory}/conf:/usr/local/etc/gateway</volume>
+														<volume>${project.parent.basedir}/exemple-gateway-integration-resource/src/main/resources:/usr/local/etc/gateway/key</volume>
+													</bind>
+												</volumes>
+												<wait>
+													<http>
+														<url>http://localhost:${application.browser.port}/actuator/health</url>
+														<method>GET</method>
+														<status>200</status>
+													</http>
+													<time>30000</time>
+												</wait>
+												<log>
+													<date>default</date>
+												</log>
+												<extraHosts>
+													<host>host.docker.internal:${local.ip}</host>
+												</extraHosts>
+											</run>
+											<copy>
+												<entries>
+													<entry>
+														<containerPath>tmp/logs</containerPath>
+														<hostDirectory>${project.build.directory}/browser</hostDirectory>
+													</entry>
+												</entries>
+											</copy>
+										</image>
+									</images>
+								</configuration>
+							</execution>
+							<execution>
+								<id>stop_all</id>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+
+			</build>
+
+		</profile>
+
+		<profile>
+			<id>it</id>
+
+			<build>
+
+				<plugins>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<application.host>${application.host}</application.host>
+								<application.port>${application.port}</application.port>
+								<application.browser.port>${application.browser.port}</application.browser.port>
+								<application.contextpath>${test.contextpath}</application.contextpath>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+
 				</plugins>
 			</build>
 		</profile>
 
 	</profiles>
+
 </project>

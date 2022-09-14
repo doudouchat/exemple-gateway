@@ -30,15 +30,7 @@
 
 		<dependency>
 			<groupId>exemple</groupId>
-			<artifactId>exemple-gateway-integration-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<!-- INTEGRATION COOKIE -->
-
-		<dependency>
-			<groupId>exemple</groupId>
-			<artifactId>exemple-gateway-integration-cookie</artifactId>
+			<artifactId>exemple-gateway-integration</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

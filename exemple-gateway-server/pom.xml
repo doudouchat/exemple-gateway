@@ -202,4 +202,48 @@
 
 	</build>
 
+	<profiles>
+
+		<profile>
+			<id>gateway</id>
+
+			<build>
+
+				<plugins>
+
+					<!-- DOCKER -->
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>build_exemple_gateway</id>
+								<goals>
+									<goal>build</goal>
+								</goals>
+								<phase>package</phase>
+								<configuration>
+									<images>
+										<image>
+											<name>exemple-gateway</name>
+											<build>
+												<dockerFile>${basedir}/../Dockerfile</dockerFile>
+												<args>
+													<VERSION_OPENJDK>${maven.compiler.target}-jdk-buster</VERSION_OPENJDK>
+												</args>
+											</build>
+										</image>
+									</images>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+			</build>
+
+		</profile>
+
+	</profiles>
+
 </project>

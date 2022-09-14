@@ -18,6 +18,7 @@
 	<modules>
 		<module>exemple-gateway-server</module>
 		<module>exemple-gateway-integration</module>
+		<module>exemple-gateway-integration-resource</module>
 		<module>jacoco-report</module>
 	</modules>
 
@@ -319,6 +320,14 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+
+				<!-- DOCKER -->
+				<!-- http://dmp.fabric8.io/ -->
+				<plugin>
+					<groupId>io.fabric8</groupId>
+					<artifactId>docker-maven-plugin</artifactId>
+					<version>0.40.2</version>
 				</plugin>
 
 				<!-- RELEASE -->

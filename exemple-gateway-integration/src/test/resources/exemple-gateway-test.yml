@@ -1,0 +1,6 @@
+spring:
+   security:
+      oauth2:
+         resourceserver:
+            jwt:
+               public-key-location: file:${project.parent.basedir}/exemple-gateway-integration-resource/src/main/resources/public_key

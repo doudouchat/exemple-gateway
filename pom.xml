@@ -44,6 +44,9 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 
+		<!-- VERSION -->
+		<jacoco-version>0.8.8</jacoco-version>
+
 		<!-- PORT -->
 
 		<api.port>8082</api.port>
@@ -279,7 +282,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.8</version>
+					<version>${jacoco-version}</version>
 					<executions>
 						<execution>
 							<id>prepare-jacoco-ut-agent</id>
@@ -292,25 +295,6 @@
 								<includes>
 									<include>com.exemple.gateway.*</include>
 								</includes>
-							</configuration>
-						</execution>
-						<execution>
-							<id>prepare-jacoco-integration-agent</id>
-							<goals>
-								<goal>prepare-agent-integration</goal>
-							</goals>
-							<phase>pre-integration-test</phase>
-							<configuration>
-								<propertyName>jacoco.it.agent.argLine</propertyName>
-								<destFile>${sonar.jacoco.itReportPath}</destFile>
-								<includes>
-									<include>com.exemple.gateway.*</include>
-								</includes>
-								<excludes>
-									<exclude>*EnhancerBySpringCGLIB*</exclude>
-									<exclude>*FastClassBySpringCGLIB*</exclude>
-								</excludes>
-								<classDumpDir>${project.build.outputDirectory}</classDumpDir>
 							</configuration>
 						</execution>
 						<execution>

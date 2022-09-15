@@ -164,19 +164,85 @@
 					<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
+						<configuration>
+							<excludes>
+								<exclude>com/exemple/gateway/integration/**</exclude>
+							</excludes>
+						</configuration>
 						<executions>
+							<execution>
+								<id>prepare-jacoco-integration-agent</id>
+								<goals>
+									<goal>prepare-agent-integration</goal>
+								</goals>
+								<phase>pre-integration-test</phase>
+								<configuration>
+									<propertyName>jacoco.it.agent.argLine</propertyName>
+									<includes>
+										<include>com.exemple.gateway.*</include>
+									</includes>
+									<classDumpDir>${project.parent.basedir}/exemple-gateway-server/target/classes</classDumpDir>
+								</configuration>
+							</execution>
+							<execution>
+								<id>dump</id>
+								<goals>
+									<goal>dump</goal>
+								</goals>
+								<configuration>
+									<address>127.0.0.1</address>
+									<port>6300</port>
+									<destFile>${project.build.directory}/jacoco-it.exec</destFile>
+								</configuration>
+							</execution>
+							<execution>
+								<id>dump-browser</id>
+								<goals>
+									<goal>dump</goal>
+								</goals>
+								<configuration>
+									<address>127.0.0.1</address>
+									<port>6301</port>
+									<destFile>${project.build.directory}/jacoco-it.exec</destFile>
+								</configuration>
+							</execution>
 							<execution>
 								<id>report-integration</id>
 								<goals>
 									<goal>report-integration</goal>
 								</goals>
-								<configuration>
-									<excludes>
-										<exclude>com/exemple/gateway/integration/**</exclude>
-									</excludes>
-								</configuration>
 							</execution>
 						</executions>
+					</plugin>
+
+					<!-- COPY JACOCO JAR AGENT -->
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copy</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.jacoco</groupId>
+									<artifactId>org.jacoco.agent</artifactId>
+									<version>${jacoco-version}</version>
+									<classifier>runtime</classifier>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/lib</outputDirectory>
+									<destFileName>jacocoagent.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
 					</plugin>
 
 					<!-- SPRING BOOT -->
@@ -254,15 +320,18 @@
 											<run>
 												<ports>
 													<port>${application.port}:8080</port>
+													<port>6300:6300</port>
 												</ports>
 												<env>
 													<spring.config.location>/usr/local/etc/gateway/exemple-gateway.yml</spring.config.location>
 													<server.servlet.context-path>/</server.servlet.context-path>
+													<JAVA_TOOL_OPTIONS>-javaagent:/usr/local/etc/gateway/lib/jacocoagent.jar=includes=com.exemple.gateway.*,output=tcpserver,address=*</JAVA_TOOL_OPTIONS>
 												</env>
 												<volumes>
 													<bind>
 														<volume>${project.build.testOutputDirectory}/conf:/usr/local/etc/gateway</volume>
 														<volume>${project.parent.basedir}/exemple-gateway-integration-resource/src/main/resources:/usr/local/etc/gateway/key</volume>
+														<volume>${project.build.directory}/lib:/usr/local/etc/gateway/lib</volume>
 													</bind>
 												</volumes>
 												<wait>
@@ -306,16 +375,19 @@
 											<run>
 												<ports>
 													<port>${application.browser.port}:8080</port>
+													<port>6301:6301</port>
 												</ports>
 												<env>
 													<spring.config.location>/usr/local/etc/gateway/exemple-gateway.yml</spring.config.location>
 													<server.servlet.context-path>/</server.servlet.context-path>
 													<spring.profiles.active>browser</spring.profiles.active>
+													<JAVA_TOOL_OPTIONS>-javaagent:/usr/local/etc/gateway/lib/jacocoagent.jar=includes=com.exemple.gateway.*,output=tcpserver,address=*,port=6301</JAVA_TOOL_OPTIONS>
 												</env>
 												<volumes>
 													<bind>
 														<volume>${project.build.testOutputDirectory}/conf:/usr/local/etc/gateway</volume>
 														<volume>${project.parent.basedir}/exemple-gateway-integration-resource/src/main/resources:/usr/local/etc/gateway/key</volume>
+														<volume>${project.build.directory}/lib:/usr/local/etc/gateway/lib</volume>
 													</bind>
 												</volumes>
 												<wait>

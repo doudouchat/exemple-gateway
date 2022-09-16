@@ -74,7 +74,7 @@ public class TestSecurityConfiguration {
 
         http
                 .addFilter(filter)
-                .authorizeRequests()
+                .authorizeRequests().antMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated().and()
                 .oauth2ResourceServer().jwt().and().and()
                 .csrf(csrf -> csrf.ignoringRequestMatchers(new AntPathRequestMatcher("/login")));

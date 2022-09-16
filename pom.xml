@@ -16,8 +16,8 @@
 	</organization>
 
 	<modules>
-		<module>exemple-gateway-server</module>
-		<module>exemple-gateway-integration</module>
+		<module>exemple-gateway-core</module>
+		<module>exemple-gateway-launcher</module>
 		<module>exemple-gateway-integration-resource</module>
 		<module>jacoco-report</module>
 	</modules>

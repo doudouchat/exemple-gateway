@@ -18,19 +18,19 @@
 
 	<dependencies>
 
-		<!-- SERVER -->
+		<!-- CORE -->
 
 		<dependency>
 			<groupId>exemple</groupId>
-			<artifactId>exemple-gateway-server</artifactId>
+			<artifactId>exemple-gateway-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- INTEGRATION API -->
+		<!-- LAUNCHER -->
 
 		<dependency>
 			<groupId>exemple</groupId>
-			<artifactId>exemple-gateway-integration</artifactId>
+			<artifactId>exemple-gateway-launcher</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

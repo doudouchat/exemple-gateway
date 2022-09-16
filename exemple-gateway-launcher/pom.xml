@@ -355,7 +355,20 @@
 												<ports>
 													<port>${hazelcast.port}:5701</port>
 												</ports>
+												<env>
+													<JAVA_OPTS>-Dhazelcast.config=/usr/local/etc/hazelcast/hazelcast_server.yaml</JAVA_OPTS>
+												</env>
+												<volumes>
+													<bind>
+														<volume>${project.build.testOutputDirectory}/conf:/usr/local/etc/hazelcast/</volume>
+													</bind>
+												</volumes>
 												<wait>
+													<http>
+														<url>http://localhost:${hazelcast.port}/hazelcast/health/ready</url>
+														<method>GET</method>
+														<status>200</status>
+													</http>
 													<time>10000</time>
 												</wait>
 												<log>

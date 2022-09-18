@@ -103,6 +103,7 @@ public class TestAuthorizationConfiguration {
         return ProviderSettings.builder()
                 .authorizationEndpoint("/oauth/authorize")
                 .tokenEndpoint("/oauth/token")
+                .jwkSetEndpoint("/oauth/jwks")
                 .build();
     }
 

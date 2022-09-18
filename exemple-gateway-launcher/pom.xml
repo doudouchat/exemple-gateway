@@ -403,7 +403,6 @@
 												<volumes>
 													<bind>
 														<volume>${project.build.testOutputDirectory}/conf:/usr/local/etc/gateway</volume>
-														<volume>${project.parent.basedir}/exemple-gateway-integration-resource/src/main/resources:/usr/local/etc/gateway/key</volume>
 														<volume>${project.build.directory}/lib:/usr/local/etc/gateway/lib</volume>
 													</bind>
 												</volumes>
@@ -459,7 +458,6 @@
 												<volumes>
 													<bind>
 														<volume>${project.build.testOutputDirectory}/conf:/usr/local/etc/gateway</volume>
-														<volume>${project.parent.basedir}/exemple-gateway-integration-resource/src/main/resources:/usr/local/etc/gateway/key</volume>
 														<volume>${project.build.directory}/lib:/usr/local/etc/gateway/lib</volume>
 													</bind>
 												</volumes>

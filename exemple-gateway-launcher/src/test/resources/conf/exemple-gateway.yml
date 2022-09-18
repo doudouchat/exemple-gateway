@@ -12,7 +12,7 @@ spring:
       oauth2:
          resourceserver:
             jwt:
-               public-key-location: file:/usr/local/etc/gateway/key/public_key
+               jwk-set-uri: http://host.docker.internal:${test.port}/Test/oauth/jwks
    cloud:
       gateway:
          httpclient:

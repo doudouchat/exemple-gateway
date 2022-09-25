@@ -27,11 +27,15 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
 import com.exemple.gateway.core.common.LoggingFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 
 import io.restassured.RestAssured;
 import io.restassured.http.Cookie;
@@ -51,28 +55,39 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     private RequestSpecification requestSpecification;
 
-    @Autowired
-    private Algorithm algo;
-
     private Cookie sessionId;
     private Cookie xsrfToken;
 
-    private String ACCESS_TOKEN;
+    private SignedJWT ACCESS_TOKEN;
+    private SignedJWT REFRESH_TOKEN;
 
-    private String REFRESH_TOKEN;
+    @Autowired
+    private RSASSASigner signer;
 
     @Autowired
     private Clock clock;
 
     @BeforeAll
-    void init() {
+    void init() throws JOSEException {
 
-        ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
-                .withExpiresAt(Date.from(Instant.now(clock).plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
-                .sign(algo);
+        var payloadAccessToken = new JWTClaimsSet.Builder()
+                .claim("user_name", "john_doe")
+                .audience("test")
+                .expirationTime(Date.from(Instant.now(clock).plus(1, ChronoUnit.DAYS)))
+                .claim("scope", new String[] { "account:read" })
+                .build();
 
-        REFRESH_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
-                .sign(algo);
+        ACCESS_TOKEN = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadAccessToken);
+        ACCESS_TOKEN.sign(signer);
+
+        var payloadRefreshToken = new JWTClaimsSet.Builder()
+                .claim("user_name", "john_doe")
+                .audience("test")
+                .claim("scope", new String[] { "account:read" })
+                .build();
+
+        REFRESH_TOKEN = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadRefreshToken);
+        REFRESH_TOKEN.sign(signer);
 
     }
 
@@ -92,8 +107,8 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // Given mock client
         Map<String, Object> responseBody = Map.of(
-                "access_token", ACCESS_TOKEN,
-                "refresh_token", REFRESH_TOKEN,
+                "access_token", ACCESS_TOKEN.serialize(),
+                "refresh_token", REFRESH_TOKEN.serialize(),
                 "scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
@@ -129,7 +144,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // Given mock client
         apiClient
-                .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN)
+                .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
                         .withPath("/ExempleService/account"))
                 .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
                         .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
@@ -150,8 +165,8 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // Given build cookie
         Map<String, Object> responseBody = Map.of(
-                "access_token", ACCESS_TOKEN,
-                "refresh_token", REFRESH_TOKEN,
+                "access_token", ACCESS_TOKEN.serialize(),
+                "refresh_token", REFRESH_TOKEN.serialize(),
                 "scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
@@ -165,7 +180,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // And mock client
         apiClient
-                .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN)
+                .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
                         .withPath("/ExempleService/account"))
                 .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
                         .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
@@ -189,8 +204,8 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // Given build cookie
         Map<String, Object> responseBody = Map.of(
-                "access_token", ACCESS_TOKEN,
-                "refresh_token", REFRESH_TOKEN,
+                "access_token", ACCESS_TOKEN.serialize(),
+                "refresh_token", REFRESH_TOKEN.serialize(),
                 "scope", "account:read");
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
@@ -216,7 +231,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     void cookieFailure() throws IOException {
 
         // Given build cookie
-        Map<String, Object> responseBody = Map.of("access_token", ACCESS_TOKEN);
+        Map<String, Object> responseBody = Map.of("access_token", ACCESS_TOKEN.serialize());
 
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
                 .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(HttpStatus.UNAUTHORIZED.value()));

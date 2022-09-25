@@ -42,6 +42,9 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     private Algorithm algo;
 
     @Autowired
+    private Algorithm otherAlgo;
+
+    @Autowired
     private HazelcastInstance hazelcastInstance;
 
     @BeforeEach
@@ -78,8 +81,9 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     void securityFailureExpiredTime() {
 
         // Given build token
+        Instant expiredDate = Instant.now().minus(1, ChronoUnit.DAYS);
         String token = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
-                .withExpiresAt(Date.from(Instant.now().minus(1, ChronoUnit.DAYS))).sign(algo);
+                .withExpiresAt(Date.from(expiredDate)).sign(algo);
 
         // When perform header
         Response response = requestSpecification.header("Authorization", "BEARER " + token)
@@ -87,6 +91,9 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+
+        // And check error
+        assertThat(response.getHeader("WWW-Authenticate")).contains("error_description=\"Jwt expired");
 
     }
 
@@ -105,6 +112,28 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+
+        // And check body
+        assertThat(response.getHeader("WWW-Authenticate")).contains("error_description=\"Jwt is excluded\"");
+
+    }
+
+    @Test
+    void securityFailurePublicKeyDoesntCheckSignature() {
+
+        // Given build token
+        String token = JWT.create().withJWTId(UUID.randomUUID().toString()).withClaim("user_name", "john_doe").withAudience("test")
+                .withArrayClaim("scope", new String[] { "account:read" }).sign(otherAlgo);
+
+        // When perform header
+        Response response = requestSpecification.header("Authorization", "BEARER " + token)
+                .post(restTemplate.getRootUri() + "/ExempleService/account");
+
+        // Then check response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+
+        // And check body
+        assertThat(response.getHeader("WWW-Authenticate")).contains("error_description=\"Failed to validate the token\"");
 
     }
 

@@ -22,7 +22,8 @@ public class NotBlackListTokenValidator implements OAuth2TokenValidator<Jwt> {
     @Override
     public OAuth2TokenValidatorResult validate(Jwt token) {
 
-        return isTokenInBlackList(token) ? OAuth2TokenValidatorResult.failure(new OAuth2Error(OAuth2ErrorCodes.ACCESS_DENIED))
+        return isTokenInBlackList(token)
+                ? OAuth2TokenValidatorResult.failure(new OAuth2Error(OAuth2ErrorCodes.ACCESS_DENIED, "Jwt is excluded", null))
                 : OAuth2TokenValidatorResult.success();
     }
 

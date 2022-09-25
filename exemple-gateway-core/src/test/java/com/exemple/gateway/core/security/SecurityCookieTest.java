@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,9 +18,6 @@ import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -62,7 +58,6 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     private Cookie xsrfToken;
 
     private String ACCESS_TOKEN;
-    private String DEPRECATED_ACCESS_TOKEN;
 
     private String REFRESH_TOKEN;
 
@@ -74,10 +69,6 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
                 .withExpiresAt(Date.from(Instant.now(clock).plus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
-                .sign(algo);
-
-        DEPRECATED_ACCESS_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test")
-                .withExpiresAt(Date.from(Instant.now(clock).minus(1, ChronoUnit.DAYS))).withArrayClaim("scope", new String[] { "account:read" })
                 .sign(algo);
 
         REFRESH_TOKEN = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
@@ -192,21 +183,13 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     }
 
-    private Stream<Arguments> securityFailures() {
-
-        return Stream.of(
-                Arguments.of(DEPRECATED_ACCESS_TOKEN, xsrfToken.getValue(), HttpStatus.UNAUTHORIZED),
-                Arguments.of(ACCESS_TOKEN, "toto", HttpStatus.FORBIDDEN));
-    }
-
-    @ParameterizedTest
-    @MethodSource
+    @Test
     @Order(2)
-    void securityFailures(String accessToken, String csrfToken, HttpStatus expectedHttpStatus) throws IOException {
+    void securityFailureBadCsrfToken() throws IOException {
 
         // Given build cookie
         Map<String, Object> responseBody = Map.of(
-                "access_token", accessToken,
+                "access_token", ACCESS_TOKEN,
                 "refresh_token", REFRESH_TOKEN,
                 "scope", "account:read");
 
@@ -219,10 +202,13 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // When perform post
         Response response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
-                .header("X-XSRF-TOKEN", csrfToken).post(restTemplate.getRootUri() + "/ExempleService/account");
+                .header("X-XSRF-TOKEN", "toto").post(restTemplate.getRootUri() + "/ExempleService/account");
 
         // Then check response
-        assertThat(response.getStatusCode()).isEqualTo(expectedHttpStatus.value());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
+
+        // And check error
+        assertThat(response.asString()).isEqualTo("Invalid CSRF Token");
 
     }
 
@@ -242,7 +228,9 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // Then check cookie
         assertThat(sessionId).isNull();
-        ;
+
+        // Then check response
+        assertThat(authorizationResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 
     }
 

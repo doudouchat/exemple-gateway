@@ -5,6 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -55,6 +58,16 @@ public class GatewayTestConfiguration {
 
     }
 
+    @Bean
+    public Algorithm otherAlgo() {
+
+        KeyPairGenerator otherKeyPairGenerator = buildKeyPairGenerator();
+        KeyPair otherKeypair = otherKeyPairGenerator.genKeyPair();
+
+        return Algorithm.RSA256((RSAPublicKey) otherKeypair.getPublic(), (RSAPrivateKey) otherKeypair.getPrivate());
+
+    }
+
     private static RSAPublicKey readPublicKey() throws GeneralSecurityException, IOException {
 
         String key = new String(Files.readAllBytes(new ClassPathResource("public_key").getFile().toPath()), StandardCharsets.UTF_8);
@@ -81,5 +94,18 @@ public class GatewayTestConfiguration {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
         return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+    }
+
+    private KeyPairGenerator buildKeyPairGenerator() {
+
+        KeyPairGenerator keyPairGenerator;
+        try {
+            keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+
+        keyPairGenerator.initialize(1024);
+        return keyPairGenerator;
     }
 }

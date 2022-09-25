@@ -18,12 +18,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
 import com.exemple.gateway.core.common.LoggingFilter;
 import com.exemple.gateway.core.security.token.validator.NotBlackListTokenValidator;
 import com.hazelcast.core.HazelcastInstance;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -39,13 +45,10 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     private RequestSpecification requestSpecification;
 
     @Autowired
-    private Algorithm algo;
-
-    @Autowired
-    private Algorithm otherAlgo;
-
-    @Autowired
     private HazelcastInstance hazelcastInstance;
+
+    @Autowired
+    private RSASSASigner signer;
 
     @BeforeEach
     private void before() {
@@ -57,19 +60,33 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    void securitySuccess() {
+    void securitySuccess() throws JOSEException {
 
         // Given build token
-        String token = JWT.create().withJWTId(UUID.randomUUID().toString()).withClaim("user_name", "john_doe").withAudience("test")
-                .withArrayClaim("scope", new String[] { "account:read" }).sign(algo);
+        var payload = new JWTClaimsSet.Builder()
+                .jwtID(UUID.randomUUID().toString())
+                .claim("user_name", "john_doe")
+                .audience("test")
+                .claim("scope", new String[] { "account:read" })
+                .build();
+
+        var token = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
+        token.sign(signer);
 
         // And mock client
-        apiClient.when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + token).withPath("/ExempleService/account"))
-                .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
-                        .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+        apiClient
+                .when(HttpRequest.request()
+                        .withMethod("POST")
+                        .withHeader("Authorization", "BEARER " + token.serialize())
+                        .withPath("/ExempleService/account"))
+                .respond(HttpResponse.response()
+                        .withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
+                        .withBody(JsonBody.json(Collections.singletonMap("name", "jean")))
+                        .withStatusCode(200));
 
         // When perform header
-        Response response = requestSpecification.header("Authorization", "BEARER " + token)
+        Response response = requestSpecification
+                .header("Authorization", "BEARER " + token.serialize())
                 .post(restTemplate.getRootUri() + "/ExempleService/account");
 
         // Then check response
@@ -78,15 +95,23 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    void securityFailureExpiredTime() {
+    void securityFailureExpiredTime() throws JOSEException {
 
         // Given build token
-        Instant expiredDate = Instant.now().minus(1, ChronoUnit.DAYS);
-        String token = JWT.create().withClaim("user_name", "john_doe").withAudience("test").withArrayClaim("scope", new String[] { "account:read" })
-                .withExpiresAt(Date.from(expiredDate)).sign(algo);
+        var payload = new JWTClaimsSet.Builder()
+                .jwtID(UUID.randomUUID().toString())
+                .claim("user_name", "john_doe")
+                .audience("test")
+                .expirationTime(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
+                .claim("scope", new String[] { "account:read" })
+                .build();
+
+        var token = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
+        token.sign(signer);
 
         // When perform header
-        Response response = requestSpecification.header("Authorization", "BEARER " + token)
+        Response response = requestSpecification
+                .header("Authorization", "BEARER " + token.serialize())
                 .post(restTemplate.getRootUri() + "/ExempleService/account");
 
         // Then check response
@@ -98,16 +123,25 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    void securityFailureTokenInBlackList() {
+    void securityFailureTokenInBlackList() throws JOSEException {
 
         // Given build token
         String jwtId = UUID.randomUUID().toString();
-        String token = JWT.create().withJWTId(jwtId).withClaim("user_name", "john_doe").withAudience("test")
-                .withArrayClaim("scope", new String[] { "account:read" }).sign(algo);
-        hazelcastInstance.getMap(NotBlackListTokenValidator.TOKEN_BLACK_LIST).put(jwtId, token);
+        var payload = new JWTClaimsSet.Builder()
+                .jwtID(jwtId)
+                .claim("user_name", "john_doe")
+                .audience("test")
+                .claim("scope", new String[] { "account:read" })
+                .build();
+
+        var token = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
+        token.sign(signer);
+
+        hazelcastInstance.getMap(NotBlackListTokenValidator.TOKEN_BLACK_LIST).put(jwtId, token.serialize());
 
         // When perform header
-        Response response = requestSpecification.header("Authorization", "BEARER " + token)
+        Response response = requestSpecification
+                .header("Authorization", "BEARER " + token.serialize())
                 .post(restTemplate.getRootUri() + "/ExempleService/account");
 
         // Then check response
@@ -119,14 +153,23 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    void securityFailurePublicKeyDoesntCheckSignature() {
+    void securityFailurePublicKeyDoesntCheckSignature() throws JOSEException {
 
         // Given build token
-        String token = JWT.create().withJWTId(UUID.randomUUID().toString()).withClaim("user_name", "john_doe").withAudience("test")
-                .withArrayClaim("scope", new String[] { "account:read" }).sign(otherAlgo);
+        String jwtId = UUID.randomUUID().toString();
+        var payload = new JWTClaimsSet.Builder()
+                .jwtID(jwtId)
+                .claim("user_name", "john_doe")
+                .audience("test")
+                .claim("scope", new String[] { "account:read" })
+                .build();
+
+        var token = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
+        RSASSASigner signer = new RSASSASigner(new RSAKeyGenerator(2048).keyUse(KeyUse.SIGNATURE).generate());
+        token.sign(signer);
 
         // When perform header
-        Response response = requestSpecification.header("Authorization", "BEARER " + token)
+        Response response = requestSpecification.header("Authorization", "BEARER " + token.serialize())
                 .post(restTemplate.getRootUri() + "/ExempleService/account");
 
         // Then check response

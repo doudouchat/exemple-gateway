@@ -5,16 +5,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collections;
 
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +21,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 
-import com.auth0.jwt.algorithms.Algorithm;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.nimbusds.jose.JWSSignerOption;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.opts.AllowWeakRSAKey;
 
 @Configuration
 @Import({ GatewayConfiguration.class })
@@ -52,34 +50,8 @@ public class GatewayTestConfiguration {
     }
 
     @Bean
-    public Algorithm algo() throws GeneralSecurityException, IOException {
-
-        return Algorithm.RSA256(readPublicKey(), (RSAPrivateKey) readPrivateKey());
-
-    }
-
-    @Bean
-    public Algorithm otherAlgo() {
-
-        KeyPairGenerator otherKeyPairGenerator = buildKeyPairGenerator();
-        KeyPair otherKeypair = otherKeyPairGenerator.genKeyPair();
-
-        return Algorithm.RSA256((RSAPublicKey) otherKeypair.getPublic(), (RSAPrivateKey) otherKeypair.getPrivate());
-
-    }
-
-    private static RSAPublicKey readPublicKey() throws GeneralSecurityException, IOException {
-
-        String key = new String(Files.readAllBytes(new ClassPathResource("public_key").getFile().toPath()), StandardCharsets.UTF_8);
-
-        String publicKeyPEM = key.replace("-----BEGIN PUBLIC KEY-----", "").replaceAll(System.lineSeparator(), "").replace("-----END PUBLIC KEY-----",
-                "");
-
-        byte[] encoded = Base64.decodeBase64(publicKeyPEM);
-
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
-        return (RSAPublicKey) keyFactory.generatePublic(keySpec);
+    public RSASSASigner signer() throws GeneralSecurityException, IOException {
+        return new RSASSASigner(readPrivateKey(), Collections.singleton((JWSSignerOption) AllowWeakRSAKey.getInstance()));
     }
 
     private RSAPrivateKey readPrivateKey() throws GeneralSecurityException, IOException {
@@ -94,18 +66,5 @@ public class GatewayTestConfiguration {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
         return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
-    }
-
-    private KeyPairGenerator buildKeyPairGenerator() {
-
-        KeyPairGenerator keyPairGenerator;
-        try {
-            keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
-
-        keyPairGenerator.initialize(1024);
-        return keyPairGenerator;
     }
 }

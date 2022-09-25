@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 
-import com.auth0.jwt.algorithms.Algorithm;
+import com.nimbusds.jose.crypto.RSASSASigner;
 
 @Configuration
 public class TestAlgorithmConfiguration {
@@ -34,10 +34,8 @@ public class TestAlgorithmConfiguration {
     }
 
     @Bean
-    public Algorithm algo() throws GeneralSecurityException {
-
-        return Algorithm.RSA256(rsaPublicKey(), rsaPrivateKey());
-
+    public RSASSASigner signer() throws GeneralSecurityException {
+        return new RSASSASigner(rsaPrivateKey());
     }
 
     @Bean

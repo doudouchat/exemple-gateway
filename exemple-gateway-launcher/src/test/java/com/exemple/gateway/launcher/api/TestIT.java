@@ -2,37 +2,48 @@ package com.exemple.gateway.launcher.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.auth0.jwt.JWT;
 import com.exemple.gateway.integration.resource.TestAlgorithmConfiguration;
 import com.exemple.gateway.launcher.common.JsonRestTemplate;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 
 import io.restassured.response.Response;
 
+@SpringJUnitConfig(TestAlgorithmConfiguration.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestIT {
 
     private static final String URL = "/ws/test";
 
-    private static String ACCESS_TOKEN;
+    private static SignedJWT ACCESS_TOKEN;
+
+    @Autowired
+    private JWSSigner signer;
 
     @BeforeAll
-    public static void init() throws IOException, GeneralSecurityException {
+    public void init() throws JOSEException {
 
-        TestAlgorithmConfiguration algorithmConfiguration = new TestAlgorithmConfiguration(new ClassPathResource("public_key"),
-                new ClassPathResource("private_key"));
+        var payload = new JWTClaimsSet.Builder()
+                .audience("test")
+                .claim("scope", new String[] { "test:read", "test:create", "test:delete", "test:update" })
+                .build();
 
-        ACCESS_TOKEN = JWT.create().withAudience("test")
-                .withArrayClaim("scope", new String[] { "test:read", "test:create", "test:delete", "test:update" })
-                .sign(algorithmConfiguration.algo());
+        ACCESS_TOKEN = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
+        ACCESS_TOKEN.sign(signer);
 
     }
 
@@ -43,7 +54,7 @@ class TestIT {
         Map<String, Object> body = Map.of("value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
+                .header("Authorization", "Bearer " + ACCESS_TOKEN.serialize()).queryParam("debug", "true")
                 .body(body).post(URL);
 
         // Then check response
@@ -55,7 +66,7 @@ class TestIT {
 
         // When perform head
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
+                .header("Authorization", "Bearer " + ACCESS_TOKEN.serialize()).queryParam("debug", "true")
                 .head(URL + "/{id}", "123");
 
         // Then check response
@@ -68,7 +79,7 @@ class TestIT {
 
         // When perform get
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
+                .header("Authorization", "Bearer " + ACCESS_TOKEN.serialize()).queryParam("debug", "true")
                 .get(URL + "/{id}", "123");
 
         // Then check response
@@ -81,7 +92,7 @@ class TestIT {
 
         // When perform delete
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
+                .header("Authorization", "Bearer " + ACCESS_TOKEN.serialize()).queryParam("debug", "true")
                 .delete(URL + "/{id}", "123");
 
         // Then check response
@@ -99,7 +110,7 @@ class TestIT {
                 "value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
+                .header("Authorization", "Bearer " + ACCESS_TOKEN.serialize()).queryParam("debug", "true")
                 .body(Collections.singletonList(patch)).patch(URL + "/{id}", "123");
 
         // Then check response
@@ -112,7 +123,7 @@ class TestIT {
 
         // When perform options
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + ACCESS_TOKEN).queryParam("debug", "true")
+                .header("Authorization", "Bearer " + ACCESS_TOKEN.serialize()).queryParam("debug", "true")
                 .options(URL + "/{id}", "123");
 
         // Then check response

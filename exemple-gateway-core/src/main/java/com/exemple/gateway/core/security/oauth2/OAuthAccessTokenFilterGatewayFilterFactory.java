@@ -1,5 +1,6 @@
 package com.exemple.gateway.core.security.oauth2;
 
+import java.text.ParseException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -22,10 +23,10 @@ import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.auth0.jwt.JWT;
 import com.exemple.gateway.core.security.helper.SessionHelper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jwt.SignedJWT;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -117,11 +118,11 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         });
     }
 
-    private void saveTokens(Session session, JsonNode authorizationNode) {
+    private void saveTokens(Session session, JsonNode authorizationNode) throws ParseException {
 
         if (!authorizationNode.path(ACCESS_TOKEN).isMissingNode()) {
             session.setAttribute(ACCESS_TOKEN, authorizationNode.get(ACCESS_TOKEN).textValue());
-            Date expiresAt = JWT.decode(authorizationNode.get(ACCESS_TOKEN).textValue()).getExpiresAt();
+            Date expiresAt = SignedJWT.parse(authorizationNode.get(ACCESS_TOKEN).textValue()).getJWTClaimsSet().getExpirationTime();
             Assert.notNull(expiresAt, "exp is required");
             session.setMaxInactiveInterval(Duration.between(Instant.now(clock), expiresAt.toInstant()));
             LOG.debug("save access token in session {}", session.getId());

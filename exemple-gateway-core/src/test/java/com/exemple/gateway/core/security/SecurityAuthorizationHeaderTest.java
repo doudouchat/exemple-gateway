@@ -51,7 +51,7 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     private RSASSASigner signer;
 
     @BeforeEach
-    private void before() {
+    public void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
 

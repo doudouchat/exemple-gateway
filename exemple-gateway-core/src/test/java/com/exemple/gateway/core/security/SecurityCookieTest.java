@@ -92,7 +92,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     }
 
     @BeforeEach
-    private void before() {
+    public void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
 
@@ -155,7 +155,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // Then check response
         assertAll(
-                () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value()),
+                () -> assertThat(response.getStatusCode()).as(response.getBody().prettyPrint()).isEqualTo(HttpStatus.OK.value()),
                 () -> assertThat(response.jsonPath().getString("name")).isEqualTo("jean"));
 
     }
@@ -193,7 +193,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
         // Then check response
         assertAll(
-                () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value()),
+                () -> assertThat(response.getStatusCode()).as(response.getBody().prettyPrint()).isEqualTo(HttpStatus.OK.value()),
                 () -> assertThat(response.jsonPath().getString("name")).isEqualTo("jean"));
 
     }

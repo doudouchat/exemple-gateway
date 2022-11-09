@@ -68,7 +68,7 @@
 
 		<dependency>
 			<groupId>org.springframework.session</groupId>
-			<artifactId>spring-session-hazelcast</artifactId>
+			<artifactId>spring-session-core</artifactId>
 		</dependency>
 
 		<!-- JWT -->

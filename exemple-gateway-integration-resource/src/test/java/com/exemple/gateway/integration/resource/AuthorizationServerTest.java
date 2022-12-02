@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Nested;
@@ -24,6 +25,16 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -349,6 +360,120 @@ class AuthorizationServerTest {
                     .options(restTemplate.getRootUri() + "/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.OK.value());
+
+        }
+
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @TestMethodOrder(OrderAnnotation.class)
+    class Unautorized {
+
+        private String accessToken;
+
+        @BeforeAll
+        public void createAccessToken() throws JOSEException {
+
+            RSAKey rasKey = new RSAKeyGenerator(2048).keyUse(KeyUse.SIGNATURE).generate();
+
+            var payload = new JWTClaimsSet.Builder()
+                    .jwtID(UUID.randomUUID().toString())
+                    .build();
+
+            var token = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.RS256).build(),
+                    payload);
+            token.sign(new RSASSASigner(rasKey));
+
+            accessToken = token.serialize();
+
+        }
+
+        @Test
+        @Order(4)
+        void postUnauthorized() {
+
+            Map<String, Object> body = Map.of("value", UUID.randomUUID());
+
+            Response response = requestSpecification
+                    .header("Authorization", "Bearer " + accessToken)
+                    .queryParam("debug", "true")
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .post(restTemplate.getRootUri() + "/ws/test");
+
+            assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        }
+
+        @Test
+        @Order(4)
+        void getUnauthorized() {
+
+            Response response = requestSpecification
+                    .header("Authorization", "Bearer " + accessToken)
+                    .queryParam("debug", "true")
+                    .get(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+
+            assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        }
+
+        @Test
+        @Order(4)
+        void headUnautorized() {
+
+            Response response = requestSpecification
+                    .header("Authorization", "Bearer " + accessToken)
+                    .queryParam("debug", "true")
+                    .head(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+
+            assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+
+        }
+
+        @Test
+        @Order(4)
+        void deleteUnautorized() {
+
+            Response response = requestSpecification
+                    .header("Authorization", "Bearer " + accessToken)
+                    .queryParam("debug", "true")
+                    .delete(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+
+            assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+
+        }
+
+        @Test
+        @Order(4)
+        void patchUnautorized() {
+
+            Map<String, Object> patch = Map.of(
+                    "op", "replace",
+                    "path", "/value",
+                    "value", UUID.randomUUID());
+
+            Response response = requestSpecification
+                    .header("Authorization", "Bearer " + accessToken)
+                    .queryParam("debug", "true")
+                    .contentType(ContentType.JSON)
+                    .body(Collections.singletonList(patch))
+                    .patch(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+
+            assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+
+        }
+
+        @Test
+        @Order(4)
+        void optionsUnautorized() {
+
+            Response response = requestSpecification
+                    .header("Authorization", "Bearer " + accessToken)
+                    .queryParam("debug", "true")
+                    .options(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+
+            assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 
         }
 

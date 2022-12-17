@@ -7,7 +7,7 @@
 	</parent>
 	<groupId>exemple</groupId>
 	<artifactId>exemple-gateway</artifactId>
-	<version>2.0.0</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<organization>
 		<name>EXEMPLE</name>
@@ -24,7 +24,7 @@
 		<connection>scm:git:git://github.com/doudouchat/exemple-gateway.git</connection>
 		<developerConnection>scm:git:https://github.com/doudouchat/exemple-gateway.git</developerConnection>
 		<url>https://github.com/doudouchat/exemple-gateway</url>
-	  <tag>exemple-gateway-2.0.0</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<distributionManagement>

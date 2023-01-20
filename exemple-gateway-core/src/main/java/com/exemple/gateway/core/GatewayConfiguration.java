@@ -9,12 +9,16 @@ import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 
+import com.exemple.gateway.core.filter.SetStatus200IfRedirectionGatewayFilterFactory;
 import com.exemple.gateway.core.security.GatewaySecurityConfiguration;
 import com.exemple.gateway.core.session.GatewaySessionConfiguration;
 
 @Configuration
 @EnableWebFlux
-@Import({ GatewaySecurityConfiguration.class, GatewaySessionConfiguration.class })
+@Import({
+        GatewaySecurityConfiguration.class,
+        GatewaySessionConfiguration.class,
+        SetStatus200IfRedirectionGatewayFilterFactory.class })
 public class GatewayConfiguration implements WebFluxConfigurer {
 
     @Bean

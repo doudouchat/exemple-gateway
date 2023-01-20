@@ -80,7 +80,7 @@ public class AuthorizationStepDefinitions {
         Response responseLogin = JsonRestTemplate.given(JsonRestTemplate.BROWSER_URL, ContentType.URLENC)
                 .formParams("username", "jean.dupond@gmail.com", "password", "123")
                 .post("/login");
-        assertThat(responseLogin.getStatusCode()).isEqualTo(302);
+        assertThat(responseLogin.getStatusCode()).isEqualTo(200);
         String xAuthToken = responseLogin.getHeader("X-Auth-Token");
 
         // When perform authorize

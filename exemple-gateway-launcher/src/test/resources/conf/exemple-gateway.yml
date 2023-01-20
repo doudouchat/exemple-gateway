@@ -27,6 +27,17 @@ spring:
             - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
             - OAuthAccessTokenFilter=
             - AddCsrfToken=
+         -  id: authorization-login
+            uri: http://host.docker.internal:${test.port}/${test.contextpath}
+            predicates:
+            - Path=/${test.contextpath}/login
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - AccessTokenRelay=
+            - RemoveRequestHeader=cookie
+            - RemoveRequestHeader=x-xsrf-token
+            - SetStatus200IfRedirection=
+            - RemoveResponseHeader=Location
          -  id: exemple
             uri: http://host.docker.internal:${test.port}/${test.contextpath}
             predicates:

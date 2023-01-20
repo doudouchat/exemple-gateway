@@ -1,6 +1,6 @@
 gateway:
    security:
-      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /ExempleAuthorization/oauth/*
+      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /ExempleAuthorization/**
       csrf:
          excludes: /ExempleAuthorization/oauth/*
 spring:
@@ -21,7 +21,7 @@ spring:
             filters:
             - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
             - AccessTokenRelay=
-         -  id: authorization-service-token
+         -  id: authorization-token
             uri: http://localhost:${authorization.port}
             predicates:
             - Path=/ExempleAuthorization/oauth/token
@@ -29,6 +29,14 @@ spring:
             - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
             - OAuthAccessTokenFilter=
             - AddCsrfToken=
+         -  id: authorization-login
+            uri: http://localhost:${authorization.port}
+            predicates:
+            - Path=/ExempleAuthorization/login
+            filters:
+            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+            - SetStatus200IfRedirection=
+            - RemoveResponseHeader=Location
          -  id: authorization-service
             uri: http://localhost:${authorization.port}
             predicates:

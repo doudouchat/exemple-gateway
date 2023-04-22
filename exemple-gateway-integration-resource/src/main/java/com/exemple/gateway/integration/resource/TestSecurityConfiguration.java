@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -87,9 +88,10 @@ public class TestSecurityConfiguration {
 
         http
                 .addFilter(filter)
-                .authorizeHttpRequests().requestMatchers("/actuator/**").permitAll()
-                .anyRequest().authenticated().and()
-                .oauth2ResourceServer().jwt().and().and()
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/**").permitAll()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()))
                 .csrf(csrf -> csrf.ignoringRequestMatchers(new AntPathRequestMatcher("/login")));
 
         return http.build();

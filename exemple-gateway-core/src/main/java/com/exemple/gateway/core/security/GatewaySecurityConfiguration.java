@@ -37,17 +37,14 @@ public class GatewaySecurityConfiguration {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, Customizer<CsrfSpec> csrfCustomizer) {
 
         return http
-
-                .cors().and()
-
-                .authorizeExchange().pathMatchers(this.excludes).permitAll()
-
-                .anyExchange().authenticated().and()
-
+                .cors(Customizer.withDefaults())
+                .authorizeExchange(authorize -> authorize
+                        .pathMatchers(this.excludes).permitAll()
+                        .anyExchange().authenticated())
                 .csrf(csrfCustomizer)
-
-                .oauth2ResourceServer().jwt().and().bearerTokenConverter(tokenExtractor).and()
-
+                .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
+                        .jwt(Customizer.withDefaults())
+                        .bearerTokenConverter(tokenExtractor))
                 .build();
     }
 

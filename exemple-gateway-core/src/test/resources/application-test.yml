@@ -1,3 +1,10 @@
+logging:
+   pattern:
+      console: "%d %-5p: %C - %m%n"
+   level:
+      root: WARN
+      com.exemple.gateway: DEBUG
+      org.springframework.cloud.gateway: DEBUG
 gateway:
    security:
       excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /ExempleAuthorization/**

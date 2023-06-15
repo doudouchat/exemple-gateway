@@ -14,6 +14,12 @@ jobs:
          with:
             distribution: 'zulu'
             java-version: 17
+      -  name: Cache SonarCloud packages
+         uses: actions/cache@v3
+         with:
+            path: ~/.sonar/cache
+            key: ${{ runner.os }}-sonar
+            restore-keys: ${{ runner.os }}-sonar
       -  name: Cache Maven packages
          uses: actions/cache@v3
          with:
@@ -29,3 +35,8 @@ jobs:
       -  name: Build with Maven
          run: mvn --batch-mode clean verify -Pgateway,it -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       -  uses: codecov/codecov-action@v3
+      -  name: Analyse
+         env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         run: mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.organization=doudouchat -Dsonar.projectKey=doudouchat_exemple-gateway -Dsonar.host.url=https://sonarcloud.io

@@ -27,7 +27,7 @@ public class TestApi {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @RequestMapping(value = "/{id}", method = RequestMethod.HEAD)
-    public void head(@PathVariable String id) {
+    public void head(@PathVariable("id") String id) {
 
         LOG.info("head api");
 
@@ -43,14 +43,14 @@ public class TestApi {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping(value = "/{id}")
-    public void update(@PathVariable String id, @RequestBody ArrayNode patch) {
+    public void update(@PathVariable("id") String id, @RequestBody ArrayNode patch) {
 
         LOG.info("patch api");
 
     }
 
     @GetMapping(value = "/{id}")
-    public JsonNode get(@PathVariable String id) {
+    public JsonNode get(@PathVariable("id") String id) {
 
         LOG.info("get api");
 
@@ -60,7 +60,7 @@ public class TestApi {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(value = "/{id}")
-    public void delete(@PathVariable String id) {
+    public void delete(@PathVariable("id") String id) {
 
         LOG.info("delete api");
 

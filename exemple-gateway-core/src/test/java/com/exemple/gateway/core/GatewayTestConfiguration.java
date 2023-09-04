@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
 
 import com.hazelcast.config.Config;
@@ -33,6 +34,7 @@ import com.nimbusds.jose.crypto.opts.AllowWeakRSAKey;
 public class GatewayTestConfiguration {
 
     @Bean
+    @Primary
     public Clock fixed() {
         return Clock.fixed(Instant.now(), ZoneId.systemDefault());
     }

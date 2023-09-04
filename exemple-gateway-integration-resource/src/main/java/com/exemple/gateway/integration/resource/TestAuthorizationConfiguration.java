@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -51,7 +52,7 @@ public class TestAuthorizationConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/**").permitAll())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
-                .apply(authorizationServerConfigurer);
+                .with(authorizationServerConfigurer, Customizer.withDefaults());
         return http.build();
     }
 

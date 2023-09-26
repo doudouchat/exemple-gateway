@@ -5,17 +5,13 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Optional;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseCookie.ResponseCookieBuilder;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
 import org.springframework.stereotype.Component;
@@ -63,7 +59,18 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
                 (ServerWebExchange exchange, String previousBody) -> {
 
                     if (exchange.getResponse().getStatusCode().is2xxSuccessful()) {
-                        saveSession(exchange, previousBody);
+
+                        cleanSessionCookie(exchange);
+
+                        var session = saveSession(previousBody);
+
+                        var newCookie = ResponseCookie.from("JSESSIONID", session.getId())
+                                .secure(Optional.ofNullable(exchange.getRequest().getSslInfo()).isPresent())
+                                .httpOnly(true)
+                                .path("/")
+                                .build();
+                        exchange.getResponse().addCookie(newCookie);
+
                     }
 
                     return Mono.justOrEmpty(previousBody);
@@ -77,36 +84,28 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
     }
 
     @SneakyThrows
-    private void saveSession(ServerWebExchange exchange, String body) {
+    private Session saveSession(String body) {
 
-        cleanSessionCookie(exchange);
-
-        Pair<ResponseCookieBuilder, Session> cookieAndSession = extractSessionCookie(exchange);
-
-        var session = cookieAndSession.getRight();
-        ResponseCookieBuilder sessionCookie = cookieAndSession.getLeft();
+        var session = repository.createSession();
 
         LOG.debug("session cookie is {}", session.getId());
 
-        saveTokens(session, MAPPER.readTree(body));
-        exchange.getResponse().addCookie(sessionCookie.build());
+        var tokenResponseBody = MAPPER.readTree(body);
 
-    }
+        var accessToken = tokenResponseBody.path(ACCESS_TOKEN);
+        if (!accessToken.isMissingNode()) {
+            saveAccessToken(session, accessToken);
+        }
 
-    private Pair<ResponseCookieBuilder, Session> extractSessionCookie(ServerWebExchange exchange) {
+        var refreshToken = tokenResponseBody.path(REFRESH_TOKEN);
+        if (!refreshToken.isMissingNode()) {
+            saveRefreshToken(session, refreshToken);
+        }
 
-        return sessionHelper.extractSessionCookie(exchange.getRequest())
-                .map(p -> Pair.of(ResponseCookie.from(p.getKey().getName(), p.getKey().getValue()), p.getValue())).orElseGet(() -> {
-                    var session = repository.createSession();
-                    return Pair.of(createSessionCookie(exchange.getRequest(), session.getId()), session);
-                });
-    }
+        repository.save(session);
 
-    private static ResponseCookieBuilder createSessionCookie(ServerHttpRequest request, String sessionId) {
+        return session;
 
-        LOG.debug("new session cookie {}", sessionId);
-
-        return ResponseCookie.from("JSESSIONID", sessionId).secure(Optional.ofNullable(request.getSslInfo()).isPresent()).httpOnly(true).path("/");
     }
 
     private void cleanSessionCookie(ServerWebExchange exchange) {
@@ -118,24 +117,19 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         });
     }
 
-    private void saveTokens(Session session, JsonNode authorizationNode) throws ParseException {
+    private void saveAccessToken(Session session, JsonNode accessToken) throws ParseException {
 
-        if (!authorizationNode.path(ACCESS_TOKEN).isMissingNode()) {
-            session.setAttribute(ACCESS_TOKEN, authorizationNode.get(ACCESS_TOKEN).textValue());
-            Date expiresAt = SignedJWT.parse(authorizationNode.get(ACCESS_TOKEN).textValue()).getJWTClaimsSet().getExpirationTime();
-            Assert.notNull(expiresAt, "exp is required");
-            session.setMaxInactiveInterval(Duration.between(Instant.now(clock), expiresAt.toInstant()));
-            LOG.debug("save access token in session {}", session.getId());
+        session.setAttribute(ACCESS_TOKEN, accessToken.textValue());
+        var expiresAt = SignedJWT.parse(accessToken.textValue()).getJWTClaimsSet().getExpirationTime();
+        Assert.notNull(expiresAt, "exp is required");
+        session.setMaxInactiveInterval(Duration.between(Instant.now(clock), expiresAt.toInstant()));
+        LOG.debug("save access token in session {}", session.getId());
+    }
 
-        }
+    private void saveRefreshToken(Session session, JsonNode refreshToken) throws ParseException {
 
-        if (!authorizationNode.path(REFRESH_TOKEN).isMissingNode()) {
-            session.setAttribute(REFRESH_TOKEN, authorizationNode.get(REFRESH_TOKEN).textValue());
-            LOG.debug("save refresh token in session {}", session.getId());
-
-        }
-
-        repository.save(session);
+        session.setAttribute(REFRESH_TOKEN, refreshToken.textValue());
+        LOG.debug("save refresh token in session {}", session.getId());
 
     }
 }

@@ -15,8 +15,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
@@ -25,6 +27,8 @@ import org.mockserver.model.JsonBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.session.Session;
+import org.springframework.session.SessionRepository;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
@@ -44,7 +48,6 @@ import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 
 @ActiveProfiles("browser")
-@TestMethodOrder(OrderAnnotation.class)
 @Slf4j
 class SecurityCookieTest extends GatewayServerTestConfiguration {
 
@@ -53,10 +56,10 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private RequestSpecification requestSpecification;
+    @Autowired
+    private SessionRepository<Session> repository;
 
-    private Cookie sessionId;
-    private Cookie xsrfToken;
+    private RequestSpecification requestSpecification;
 
     private SignedJWT ACCESS_TOKEN;
     private SignedJWT REFRESH_TOKEN;
@@ -101,62 +104,122 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
     }
 
-    @Test
-    @Order(1)
-    void token() throws IOException {
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @TestMethodOrder(OrderAnnotation.class)
+    class AccessTokenAndRefreshTokenTest {
 
-        // Given mock client
-        Map<String, Object> responseBody = Map.of(
-                "access_token", ACCESS_TOKEN.serialize(),
-                "refresh_token", REFRESH_TOKEN.serialize(),
-                "scope", "account:read");
+        private Cookie sessionId;
 
-        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+        private Cookie xsrfToken;
 
-        // When perform post
-        Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+        @Test
+        @Order(1)
+        void token() throws IOException {
 
-        // Then check response
-        assertAll(
-                () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value()),
-                () -> assertThat(response.getCookies()).isNotEmpty(),
-                () -> assertThat(response.getCookie("JSESSIONID")).isNotNull(),
-                () -> assertThat(response.jsonPath().getString("scope")).isEqualTo("account:read"));
+            // Given mock client
+            Map<String, Object> responseBody = Map.of(
+                    "access_token", ACCESS_TOKEN.serialize(),
+                    "refresh_token", REFRESH_TOKEN.serialize(),
+                    "scope", "account:read");
 
-        sessionId = response.getDetailedCookie("JSESSIONID");
-        xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
+            authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
+                    .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
 
-        // And check session
-        assertAll(
-                () -> assertThat(sessionId.isHttpOnly()).isTrue(),
-                () -> assertThat(sessionId.getExpiryDate()).isNull(),
-                () -> assertThat(sessionId.getMaxAge()).isEqualTo(-1));
+            // When perform post
+            Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
 
-        // And check token
-        assertThat(xsrfToken.isHttpOnly()).isFalse();
+            // Then check response
+            assertAll(
+                    () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value()),
+                    () -> assertThat(response.getCookies()).isNotEmpty(),
+                    () -> assertThat(response.getCookie("JSESSIONID")).isNotNull(),
+                    () -> assertThat(response.getCookie("XSRF-TOKEN")).isNotNull(),
+                    () -> assertThat(response.jsonPath().getString("scope")).isEqualTo("account:read"));
 
-    }
+            sessionId = response.getDetailedCookie("JSESSIONID");
+            xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
 
-    @Test
-    @Order(2)
-    void securitySuccess() {
+            // And check session
+            assertAll(
+                    () -> assertThat(sessionId.isHttpOnly()).isTrue(),
+                    () -> assertThat(sessionId.getExpiryDate()).isNull(),
+                    () -> assertThat(sessionId.getMaxAge()).isEqualTo(-1));
 
-        // Given mock client
-        apiClient
-                .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
-                        .withPath("/ExempleService/account"))
-                .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
-                        .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+            // And check token
+            assertThat(xsrfToken.isHttpOnly()).isFalse();
 
-        // When perform post
-        Response response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
-                .header("X-XSRF-TOKEN", xsrfToken.getValue()).post(restTemplate.getRootUri() + "/ExempleService/account");
+            // and check session in repository
+            assertThat(repository.findById(sessionId.getValue())).isNotNull();
 
-        // Then check response
-        assertAll(
-                () -> assertThat(response.getStatusCode()).as(response.getBody().prettyPrint()).isEqualTo(HttpStatus.OK.value()),
-                () -> assertThat(response.jsonPath().getString("name")).isEqualTo("jean"));
+        }
+
+        @Test
+        @Order(2)
+        void securitySuccess() {
+
+            // Given mock client
+            apiClient
+                    .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
+                            .withPath("/ExempleService/account"))
+                    .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
+                            .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+
+            // When perform post
+            Response response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
+                    .header("X-XSRF-TOKEN", xsrfToken.getValue()).post(restTemplate.getRootUri() + "/ExempleService/account");
+
+            // Then check response
+            assertAll(
+                    () -> assertThat(response.getStatusCode()).as(response.getBody().prettyPrint()).isEqualTo(HttpStatus.OK.value()),
+                    () -> assertThat(response.jsonPath().getString("name")).isEqualTo("jean"));
+
+        }
+
+        @Test
+        @Order(2)
+        void securityFailureBadCsrfToken() throws IOException {
+
+            // When perform post
+            Response response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
+                    .header("X-XSRF-TOKEN", "toto").post(restTemplate.getRootUri() + "/ExempleService/account");
+
+            // Then check response
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
+
+            // And check error
+            assertThat(response.asString()).isEqualTo("Invalid CSRF Token");
+
+        }
+
+        @Test
+        @Order(3)
+        void replayToken() throws IOException {
+
+            // Given mock client
+            Map<String, Object> responseBody = Map.of(
+                    "access_token", ACCESS_TOKEN.serialize(),
+                    "refresh_token", REFRESH_TOKEN.serialize(),
+                    "scope", "account:read");
+
+            authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
+                    .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+
+            // When perform post
+            Response response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
+                    .post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+
+            // Then check response
+            assertAll(
+                    () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value()),
+                    () -> assertThat(response.getCookies()).isNotEmpty(),
+                    () -> assertThat(response.getDetailedCookie("JSESSIONID").getValue()).isNotEqualTo(sessionId.getValue()),
+                    () -> assertThat(response.jsonPath().getString("scope")).isEqualTo("account:read"));
+
+            // and check session in repository
+            assertThat(repository.findById(sessionId.getValue())).isNull();
+
+        }
 
     }
 
@@ -199,58 +262,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    @Order(2)
-    void securityFailureBadCsrfToken() throws IOException {
-
-        // Given build cookie
-        Map<String, Object> responseBody = Map.of(
-                "access_token", ACCESS_TOKEN.serialize(),
-                "refresh_token", REFRESH_TOKEN.serialize(),
-                "scope", "account:read");
-
-        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(HttpStatus.OK.value()));
-
-        Response authorizationResponse = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
-
-        Cookie sessionId = authorizationResponse.getDetailedCookie("JSESSIONID");
-
-        // When perform post
-        Response response = requestSpecification.cookie("JSESSIONID", sessionId.getValue()).cookie("XSRF-TOKEN", xsrfToken.getValue())
-                .header("X-XSRF-TOKEN", "toto").post(restTemplate.getRootUri() + "/ExempleService/account");
-
-        // Then check response
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
-
-        // And check error
-        assertThat(response.asString()).isEqualTo("Invalid CSRF Token");
-
-    }
-
-    @Test
-    void cookieFailure() throws IOException {
-
-        // Given build cookie
-        Map<String, Object> responseBody = Map.of("access_token", ACCESS_TOKEN.serialize());
-
-        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(HttpStatus.UNAUTHORIZED.value()));
-
-        // When perform post
-        Response authorizationResponse = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
-
-        Cookie sessionId = authorizationResponse.getDetailedCookie("JSESSIONID");
-
-        // Then check cookie
-        assertThat(sessionId).isNull();
-
-        // Then check response
-        assertThat(authorizationResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
-
-    }
-
-    @Test
-    void tokenEmpty() throws IOException {
+    void noAccessOrRefreshToken() throws IOException {
 
         // Given mock client
         Map<String, Object> responseBody = Map.of("scope", "account:read");
@@ -269,7 +281,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
                 () -> assertThat(response.jsonPath().getString("scope")).isEqualTo("account:read"));
 
     }
-
+    
     @Test
     void tokenFailure() {
 
@@ -286,17 +298,20 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    void tokenUnauthorized() {
+    void tokenIsUnauthorized() {
 
         // Given mock client
         authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                .respond(HttpResponse.response().withStatusCode(401));
+                .respond(HttpResponse.response().withStatusCode(HttpStatus.UNAUTHORIZED.value()));
 
         // When perform post
         Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
 
         // Then check response
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertAll(
+                () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value()),
+                () -> assertThat(response.getCookies()).isNotEmpty(),
+                () -> assertThat(response.getCookie("JSESSIONID")).isNull());
 
     }
 

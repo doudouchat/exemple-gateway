@@ -2,7 +2,6 @@ package com.exemple.gateway.core.security.token;
 
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.web.server.authentication.ServerBearerTokenAuthenticationConverter;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.exemple.gateway.core.security.helper.SessionHelper;
+import com.exemple.gateway.core.security.helper.SessionHelper.SessionCookie;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -27,7 +27,8 @@ public class CookieTokenExtractor implements ServerAuthenticationConverter {
     public Mono<Authentication> convert(ServerWebExchange exchange) {
 
         Supplier<Mono<Authentication>> extractCookie = () -> Mono.justOrEmpty(sessionHelper.extractSessionCookie(exchange.getRequest())
-                .map(Pair::getValue).map(session -> new BearerTokenAuthenticationToken(session.getAttribute("access_token"))));
+                .map(SessionCookie::session)
+                .map(session -> new BearerTokenAuthenticationToken(session.getAttribute("access_token"))));
 
         return this.defaultTokenExtractor.convert(exchange).switchIfEmpty(Mono.defer(extractCookie));
     }

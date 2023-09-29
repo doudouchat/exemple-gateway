@@ -3,7 +3,6 @@ package com.exemple.gateway.launcher.token;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,7 +54,7 @@ public class AuthorizationStepDefinitions {
         Map<String, String> params = Map.of("grant_type", "client_credentials");
 
         Response response = JsonRestTemplate.given(JsonRestTemplate.BROWSER_URL, ContentType.URLENC)
-                .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes(StandardCharsets.UTF_8)))
+                .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))
                 .formParams(params).post("/oauth/token");
 
         assertAll(
@@ -115,7 +114,7 @@ public class AuthorizationStepDefinitions {
                 "redirect_uri", "http://xxx");
 
         Response responseToken = JsonRestTemplate.given(JsonRestTemplate.BROWSER_URL, ContentType.URLENC)
-                .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes(StandardCharsets.UTF_8)))
+                .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))
                 .formParams(params)
                 .post("/oauth/token");
 

@@ -3,7 +3,6 @@ package com.exemple.gateway.integration.resource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -140,7 +139,7 @@ class AuthorizationServerTest {
                     "redirect_uri", "http://xxx");
 
             Response response = requestSpecification
-                    .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes(StandardCharsets.UTF_8)))
+                    .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))
                     .contentType(ContentType.URLENC)
                     .formParams(params)
                     .post(restTemplate.getRootUri() + "/oauth/token");
@@ -262,7 +261,7 @@ class AuthorizationServerTest {
             // When perform get access token
 
             Response response = requestSpecification
-                    .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes(StandardCharsets.UTF_8)))
+                    .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))
                     .formParams(params)
                     .post(restTemplate.getRootUri() + "/oauth/token");
 

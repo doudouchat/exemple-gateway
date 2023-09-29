@@ -1,7 +1,6 @@
 package com.exemple.gateway.core;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
@@ -56,7 +55,7 @@ public class GatewayTestConfiguration {
 
     private RSAPrivateKey readPrivateKey() throws GeneralSecurityException, IOException {
 
-        String key = new String(Files.readAllBytes(new ClassPathResource("private_key").getFile().toPath()), StandardCharsets.UTF_8);
+        String key = new String(Files.readAllBytes(new ClassPathResource("private_key").getFile().toPath()));
 
         String privateKeyPEM = key.replace("-----BEGIN PRIVATE KEY-----", "").replaceAll(System.lineSeparator(), "")
                 .replace("-----END PRIVATE KEY-----", "");

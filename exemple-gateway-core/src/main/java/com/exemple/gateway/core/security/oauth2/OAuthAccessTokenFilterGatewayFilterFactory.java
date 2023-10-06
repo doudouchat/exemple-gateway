@@ -1,6 +1,5 @@
 package com.exemple.gateway.core.security.oauth2;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -92,10 +91,9 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
         var tokenResponseBody = MAPPER.readTree(body);
 
-        var accessToken = tokenResponseBody.path(ACCESS_TOKEN);
-        if (!accessToken.isMissingNode()) {
-            saveAccessToken(session, accessToken);
-        }
+        var accessToken = tokenResponseBody.get(ACCESS_TOKEN);
+        Assert.notNull(accessToken, "access token is missing");
+        saveAccessToken(session, accessToken);
 
         var refreshToken = tokenResponseBody.path(REFRESH_TOKEN);
         if (!refreshToken.isMissingNode()) {
@@ -117,7 +115,8 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         });
     }
 
-    private void saveAccessToken(Session session, JsonNode accessToken) throws ParseException {
+    @SneakyThrows
+    private void saveAccessToken(Session session, JsonNode accessToken) {
 
         session.setAttribute(ACCESS_TOKEN, accessToken.textValue());
         var expiresAt = SignedJWT.parse(accessToken.textValue()).getJWTClaimsSet().getExpirationTime();
@@ -126,7 +125,7 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         LOG.debug("save access token in session {}", session.getId());
     }
 
-    private void saveRefreshToken(Session session, JsonNode refreshToken) throws ParseException {
+    private void saveRefreshToken(Session session, JsonNode refreshToken) {
 
         session.setAttribute(REFRESH_TOKEN, refreshToken.textValue());
         LOG.debug("save refresh token in session {}", session.getId());

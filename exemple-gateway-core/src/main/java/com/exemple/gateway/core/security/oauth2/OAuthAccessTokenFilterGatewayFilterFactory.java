@@ -1,6 +1,5 @@
 package com.exemple.gateway.core.security.oauth2;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -20,7 +19,6 @@ import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.exemple.gateway.core.security.helper.SessionHelper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 
@@ -31,8 +29,6 @@ import reactor.core.publisher.Mono;
 @Component
 @Slf4j
 public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final String ACCESS_TOKEN = "access_token";
 
@@ -83,23 +79,18 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         return gatewayFilterFactory.apply(this.config);
     }
 
-    @SneakyThrows
     private Session saveSession(String body) {
 
         var session = repository.createSession();
 
         LOG.debug("session cookie is {}", session.getId());
 
-        var tokenResponseBody = MAPPER.readTree(body);
+        var accessTokenResponse = new AccessTokenResponse(body);
 
-        var accessToken = tokenResponseBody.path(ACCESS_TOKEN);
-        if (!accessToken.isMissingNode()) {
-            saveAccessToken(session, accessToken);
-        }
+        saveAccessToken(session, accessTokenResponse.accessToken);
 
-        var refreshToken = tokenResponseBody.path(REFRESH_TOKEN);
-        if (!refreshToken.isMissingNode()) {
-            saveRefreshToken(session, refreshToken);
+        if (accessTokenResponse.hasRefreshToken()) {
+            saveRefreshToken(session, accessTokenResponse.refreshToken);
         }
 
         repository.save(session);
@@ -117,19 +108,45 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         });
     }
 
-    private void saveAccessToken(Session session, JsonNode accessToken) throws ParseException {
+    @SneakyThrows
+    private void saveAccessToken(Session session, SignedJWT accessToken) {
 
-        session.setAttribute(ACCESS_TOKEN, accessToken.textValue());
-        var expiresAt = SignedJWT.parse(accessToken.textValue()).getJWTClaimsSet().getExpirationTime();
+        session.setAttribute(ACCESS_TOKEN, accessToken.serialize());
+        var expiresAt = accessToken.getJWTClaimsSet().getExpirationTime();
         Assert.notNull(expiresAt, "exp is required");
         session.setMaxInactiveInterval(Duration.between(Instant.now(clock), expiresAt.toInstant()));
         LOG.debug("save access token in session {}", session.getId());
     }
 
-    private void saveRefreshToken(Session session, JsonNode refreshToken) throws ParseException {
+    private void saveRefreshToken(Session session, String refreshToken) {
 
-        session.setAttribute(REFRESH_TOKEN, refreshToken.textValue());
+        session.setAttribute(REFRESH_TOKEN, refreshToken);
         LOG.debug("save refresh token in session {}", session.getId());
+
+    }
+
+    private static class AccessTokenResponse {
+
+        private static final ObjectMapper MAPPER = new ObjectMapper();
+
+        private final SignedJWT accessToken;
+
+        private final String refreshToken;
+
+        @SneakyThrows
+        public AccessTokenResponse(String body) {
+            var bodyJson = MAPPER.readTree(body);
+
+            Assert.notNull(bodyJson.get(ACCESS_TOKEN), "access token is missing");
+
+            this.accessToken = SignedJWT.parse(bodyJson.path(ACCESS_TOKEN).textValue());
+            this.refreshToken = bodyJson.path(REFRESH_TOKEN).textValue();
+
+        }
+
+        public boolean hasRefreshToken() {
+            return refreshToken != null;
+        }
 
     }
 }

@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -20,6 +21,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.exemple.gateway.core.security.helper.SessionHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jwt.SignedJWT;
 
 import lombok.SneakyThrows;
@@ -58,7 +60,9 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
                         cleanSessionCookie(exchange);
 
-                        var session = saveSession(previousBody);
+                        var accessTokenResponse = new AccessTokenResponse(previousBody);
+
+                        var session = saveSession(accessTokenResponse);
 
                         var newCookie = ResponseCookie.from("JSESSIONID", session.getId())
                                 .secure(Optional.ofNullable(exchange.getRequest().getSslInfo()).isPresent())
@@ -66,6 +70,8 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
                                 .path("/")
                                 .build();
                         exchange.getResponse().addCookie(newCookie);
+
+                        previousBody = accessTokenResponse.body;
 
                     }
 
@@ -79,13 +85,11 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
         return gatewayFilterFactory.apply(this.config);
     }
 
-    private Session saveSession(String body) {
+    private Session saveSession(AccessTokenResponse accessTokenResponse) {
 
         var session = repository.createSession();
 
         LOG.debug("session cookie is {}", session.getId());
-
-        var accessTokenResponse = new AccessTokenResponse(body);
 
         saveAccessToken(session, accessTokenResponse.accessToken);
 
@@ -109,10 +113,10 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
     }
 
     @SneakyThrows
-    private void saveAccessToken(Session session, SignedJWT accessToken) {
+    private void saveAccessToken(Session session, String accessToken) {
 
-        session.setAttribute(ACCESS_TOKEN, accessToken.serialize());
-        var expiresAt = accessToken.getJWTClaimsSet().getExpirationTime();
+        session.setAttribute(ACCESS_TOKEN, accessToken);
+        var expiresAt = SignedJWT.parse(accessToken).getJWTClaimsSet().getExpirationTime();
         Assert.notNull(expiresAt, "exp is required");
         session.setMaxInactiveInterval(Duration.between(Instant.now(clock), expiresAt.toInstant()));
         LOG.debug("save access token in session {}", session.getId());
@@ -129,9 +133,11 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
         private static final ObjectMapper MAPPER = new ObjectMapper();
 
-        private final SignedJWT accessToken;
+        private final String accessToken;
 
         private final String refreshToken;
+
+        private final String body;
 
         @SneakyThrows
         public AccessTokenResponse(String body) {
@@ -139,8 +145,10 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
             Assert.notNull(bodyJson.get(ACCESS_TOKEN), "access token is missing");
 
-            this.accessToken = SignedJWT.parse(bodyJson.path(ACCESS_TOKEN).textValue());
+            this.accessToken = bodyJson.path(ACCESS_TOKEN).textValue();
             this.refreshToken = bodyJson.path(REFRESH_TOKEN).textValue();
+            ((ObjectNode) bodyJson).remove(List.of(ACCESS_TOKEN, REFRESH_TOKEN));
+            this.body = bodyJson.toString();
 
         }
 

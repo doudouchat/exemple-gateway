@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.JsonBody;
@@ -117,10 +116,15 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
             // Given mock client
             var responseBody = Map.of(
                     "access_token", ACCESS_TOKEN.serialize(),
-                    "refresh_token", REFRESH_TOKEN.serialize());
+                    "refresh_token", REFRESH_TOKEN.serialize(),
+                    "scope", "account:read",
+                    "token_type", "Bearer",
+                    "expires_in", 300);
 
             authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                    .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+                    .respond(HttpResponse.response()
+                            .withHeader("Content-Type", "application/json;charset=UTF-8")
+                            .withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
 
             // When perform post
             Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
@@ -128,7 +132,15 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
             // Then check response
             assertAll(
                     () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value()),
-                    () -> assertThat(response.getCookie("JSESSIONID")).isNotNull());
+                    () -> assertThat(response.getCookie("JSESSIONID")).isNotNull(),
+                    () -> assertThat(MAPPER.readTree(response.asByteArray())).isEqualTo(MAPPER.readTree(
+                            """
+                            {
+                              "scope": "account:read",
+                              "token_type": "Bearer",
+                              "expires_in": 300
+                            }
+                            """)));
 
             var sessionId = response.getDetailedCookie("JSESSIONID");
 
@@ -148,7 +160,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
             apiClient
                     .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
                             .withPath("/ExempleService/account"))
-                    .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
+                    .respond(HttpResponse.response()
                             .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
 
             // When perform post
@@ -186,7 +198,9 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
                     "scope", "account:read");
 
             authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                    .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+                    .respond(HttpResponse.response()
+                            .withHeader("Content-Type", "application/json;charset=UTF-8")
+                            .withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
 
             // When perform post
             Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
@@ -197,7 +211,12 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
                     () -> assertThat(response.getCookies()).isNotEmpty(),
                     () -> assertThat(response.getCookie("JSESSIONID")).isNotNull(),
                     () -> assertThat(response.getCookie("XSRF-TOKEN")).isNotNull(),
-                    () -> assertThat(response.jsonPath().getString("scope")).isEqualTo("account:read"));
+                    () -> assertThat(MAPPER.readTree(response.asByteArray())).isEqualTo(MAPPER.readTree(
+                            """
+                            {
+                              "scope": "account:read"
+                            }
+                            """)));
 
             sessionId = response.getDetailedCookie("JSESSIONID");
             xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
@@ -221,7 +240,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
             apiClient
                     .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
                             .withPath("/ExempleService/account"))
-                    .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
+                    .respond(HttpResponse.response()
                             .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
 
             // When perform post
@@ -279,7 +298,8 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
                     "scope", "account:read");
 
             authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                    .respond(HttpResponse.response().withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+                    .respond(HttpResponse.response()
+                            .withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
 
             // When perform post
             Response response = requestSpecification
@@ -292,7 +312,12 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
                     () -> assertThat(response.getCookies()).isNotEmpty(),
                     () -> assertThat(response.getCookie("JSESSIONID")).isNotNull(),
                     () -> assertThat(response.getCookie("XSRF-TOKEN")).isNotNull(),
-                    () -> assertThat(response.jsonPath().getString("scope")).isEqualTo("account:read"));
+                    () -> assertThat(MAPPER.readTree(response.asByteArray())).isEqualTo(MAPPER.readTree(
+                            """
+                            {
+                              "scope": "account:read"
+                            }
+                            """)));
 
             sessionId = response.getDetailedCookie("JSESSIONID");
             xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
@@ -313,7 +338,7 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
             apiClient
                     .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
                             .withPath("/ExempleService/account"))
-                    .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
+                    .respond(HttpResponse.response()
                             .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
 
             // When perform post
@@ -350,7 +375,9 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
 
             // Given mock client
             authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                    .respond(HttpResponse.response().withStatusCode(HttpStatus.UNAUTHORIZED.value()));
+                    .respond(HttpResponse.response()
+                            .withBody(JsonBody.json(Collections.singletonMap("error", "invalid_grant")))
+                            .withStatusCode(HttpStatus.UNAUTHORIZED.value()));
 
             // When perform post
             Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
@@ -359,7 +386,13 @@ class SecurityCookieTest extends GatewayServerTestConfiguration {
             assertAll(
                     () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value()),
                     () -> assertThat(response.getCookies()).isNotEmpty(),
-                    () -> assertThat(response.getCookie("JSESSIONID")).isNull());
+                    () -> assertThat(response.getCookie("JSESSIONID")).isNull(),
+                    () -> assertThat(MAPPER.readTree(response.asByteArray())).isEqualTo(MAPPER.readTree(
+                            """
+                            {
+                              "error": "invalid_grant"
+                            }
+                            """)));
 
         }
 

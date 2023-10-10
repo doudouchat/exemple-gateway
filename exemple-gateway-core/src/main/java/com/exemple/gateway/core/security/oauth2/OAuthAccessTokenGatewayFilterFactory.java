@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Slf4j
-public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
+public class OAuthAccessTokenGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
 
     private static final String ACCESS_TOKEN = "access_token";
 
@@ -46,7 +46,7 @@ public class OAuthAccessTokenFilterGatewayFilterFactory extends AbstractGatewayF
 
     private final Clock clock;
 
-    public OAuthAccessTokenFilterGatewayFilterFactory(SessionRepository<Session> repository, SessionHelper sessionHelper, Clock clock) {
+    public OAuthAccessTokenGatewayFilterFactory(SessionRepository<Session> repository, SessionHelper sessionHelper, Clock clock) {
         super(Object.class);
         this.repository = repository;
         this.sessionHelper = sessionHelper;

@@ -1,6 +1,7 @@
 package com.exemple.gateway.core.security.oauth2;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -34,23 +35,34 @@ public class OAuthRevokeTokenGatewayFilterFactory extends AbstractGatewayFilterF
         this.sessionHelper = sessionHelper;
         this.repository = repository;
         this.modifyRequestFactory = new ModifyRequestBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders());
-        this.modifyRequestConfig = new ModifyRequestBodyGatewayFilterFactory.Config().setRewriteFunction(String.class, String.class,
-                (ServerWebExchange exchange, String nextBody) -> Mono.justOrEmpty(sessionHelper.extractSessionCookie(exchange.getRequest())
-                        .flatMap(sessionCookie -> Optional.ofNullable("token=" + sessionCookie.session().getAttribute(ACCESS_TOKEN)))
-                        .orElse(nextBody)));
+        this.modifyRequestConfig = new ModifyRequestBodyGatewayFilterFactory.Config()
+                .setRewriteFunction(
+                        String.class,
+                        String.class,
+                        (ServerWebExchange exchange, String nextBody) -> Mono.justOrEmpty(addTokenInForm(exchange, nextBody)));
     }
 
     @Override
     public GatewayFilter apply(Object config) {
+
+        Consumer<ServerWebExchange> deleteSession = (ServerWebExchange exchange) -> {
+            if (exchange.getResponse().getStatusCode().is2xxSuccessful()) {
+
+                sessionHelper.extractSessionCookie(exchange.getRequest())
+                        .ifPresent(sessionCookie -> repository.deleteById(sessionCookie.session().getId()));
+
+            }
+        };
+
         return (ServerWebExchange exchange, GatewayFilterChain chain) -> modifyRequestFactory.apply(modifyRequestConfig).filter(exchange, chain)
-                .doOnSuccess((Void v) -> {
-                    if (exchange.getResponse().getStatusCode().is2xxSuccessful()) {
+                .doOnSuccess((Void v) -> deleteSession.accept(exchange));
 
-                        sessionHelper.extractSessionCookie(exchange.getRequest())
-                                .ifPresent(sessionCookie -> repository.deleteById(sessionCookie.session().getId()));
+    }
 
-                    }
-                });
+    private String addTokenInForm(ServerWebExchange exchange, String defaultBody) {
 
+        return sessionHelper.extractSessionCookie(exchange.getRequest())
+                .flatMap(sessionCookie -> Optional.ofNullable("token=" + sessionCookie.session().getAttribute(ACCESS_TOKEN)))
+                .orElse(defaultBody);
     }
 }

@@ -1,4 +1,4 @@
-package com.exemple.gateway.core.security;
+package com.exemple.gateway.core.security.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @ActiveProfiles("browser")
 @Slf4j
-class SecurityCookieTest extends GatewayServerTestConfiguration {
+class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 

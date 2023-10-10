@@ -1,4 +1,4 @@
-package com.exemple.gateway.core.security;
+package com.exemple.gateway.core.security.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

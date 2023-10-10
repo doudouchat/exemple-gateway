@@ -25,7 +25,7 @@ spring:
             - Path=/${test.contextpath}/oauth/token
             filters:
             - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-            - OAuthAccessTokenFilter=
+            - OAuthAccessToken=
             - AddCsrfToken=
          -  id: authorization-login
             uri: http://host.docker.internal:${test.port}/${test.contextpath}

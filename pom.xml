@@ -24,8 +24,8 @@
 		<connection>scm:git:git://github.com/doudouchat/exemple-gateway.git</connection>
 		<developerConnection>scm:git:https://github.com/doudouchat/exemple-gateway.git</developerConnection>
 		<url>https://github.com/doudouchat/exemple-gateway</url>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 
 	<distributionManagement>
 		<repository>

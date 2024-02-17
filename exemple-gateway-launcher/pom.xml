@@ -189,6 +189,10 @@
 		<profile>
 			<id>gateway</id>
 
+			<properties>
+				<docker.buildArg.VERSION_OPENJDK>${maven.compiler.target}-jdk-buster</docker.buildArg.VERSION_OPENJDK>
+			</properties>
+
 			<dependencies>
 
 				<!-- RESOURCE TEST -->
@@ -323,9 +327,6 @@
 											<name>exemple-gateway</name>
 											<build>
 												<dockerFile>${basedir}/../Dockerfile</dockerFile>
-												<args>
-													<VERSION_OPENJDK>${maven.compiler.target}-jdk-buster</VERSION_OPENJDK>
-												</args>
 											</build>
 										</image>
 									</images>
@@ -343,9 +344,6 @@
 											<name>exemple-resource-test</name>
 											<build>
 												<dockerFile>${project.parent.basedir}/exemple-gateway-integration-resource/Dockerfile</dockerFile>
-												<args>
-													<VERSION_OPENJDK>${maven.compiler.target}-jdk-buster</VERSION_OPENJDK>
-												</args>
 											</build>
 										</image>
 									</images>

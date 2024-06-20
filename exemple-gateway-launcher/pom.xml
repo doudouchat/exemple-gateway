@@ -190,7 +190,7 @@
 			<id>gateway</id>
 
 			<properties>
-				<docker.buildArg.VERSION_OPENJDK>${maven.compiler.target}-jdk-buster</docker.buildArg.VERSION_OPENJDK>
+				<docker.buildArg.VERSION_OPENJDK>${maven.compiler.target}-jdk</docker.buildArg.VERSION_OPENJDK>
 			</properties>
 
 			<dependencies>

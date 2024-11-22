@@ -165,8 +165,7 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
                 .build();
 
         var token = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
-        RSASSASigner signer = new RSASSASigner(new RSAKeyGenerator(2048).keyUse(KeyUse.SIGNATURE).generate());
-        token.sign(signer);
+        token.sign(new RSASSASigner(new RSAKeyGenerator(2048).keyUse(KeyUse.SIGNATURE).generate()));
 
         // When perform header
         Response response = requestSpecification.header("Authorization", "BEARER " + token.serialize())

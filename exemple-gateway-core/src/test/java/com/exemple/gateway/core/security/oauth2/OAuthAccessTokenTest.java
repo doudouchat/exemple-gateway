@@ -259,7 +259,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
         @Test
         @Order(2)
-        void securityFailureBadCsrfToken() throws IOException {
+        void securityFailureBadCsrfToken() {
 
             // When perform post
             Response response = requestSpecification
@@ -371,7 +371,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
         @Test
         @Order(1)
-        void token() throws IOException {
+        void token() {
 
             // Given mock client
             authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))

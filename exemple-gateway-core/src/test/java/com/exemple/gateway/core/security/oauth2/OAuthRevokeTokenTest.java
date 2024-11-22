@@ -2,8 +2,6 @@ package com.exemple.gateway.core.security.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +80,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    void revokeTokenSuccess() throws IOException {
+    void revokeTokenSuccess() {
 
         // Create session
         var session = repository.createSession();
@@ -110,7 +108,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
     }
 
     @Test
-    void revokeTokenFailure() throws IOException {
+    void revokeTokenFailure() {
 
         // Create session
         var session = repository.createSession();

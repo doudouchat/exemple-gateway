@@ -45,7 +45,7 @@
 		<maven.compiler.target>21</maven.compiler.target>
 
 		<!-- VERSION -->
-		<jacoco-version>0.8.12</jacoco-version>
+		<jacoco.version>0.8.12</jacoco.version>
 
 		<!-- PORT -->
 
@@ -236,7 +236,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>${jacoco-version}</version>
+					<version>${jacoco.version}</version>
 					<executions>
 						<execution>
 							<id>prepare-jacoco-ut-agent</id>

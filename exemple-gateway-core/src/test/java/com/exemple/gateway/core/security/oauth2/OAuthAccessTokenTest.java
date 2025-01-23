@@ -270,7 +270,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
             // Then check response
             assertAll(
                     () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value()),
-                    () -> assertThat(response.asString()).isEqualTo("Invalid CSRF Token"));
+                    () -> assertThat(response.asString()).isEqualTo("Access Denied"));
 
         }
 

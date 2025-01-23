@@ -9,6 +9,9 @@
 
 	<properties>
 
+		<!-- VERSION -->
+		<maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
+
 		<application.host>http://localhost</application.host>
 
 		<test.contextpath>Test</test.contextpath>

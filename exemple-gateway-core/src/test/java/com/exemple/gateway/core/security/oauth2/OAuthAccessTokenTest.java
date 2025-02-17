@@ -93,7 +93,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
 

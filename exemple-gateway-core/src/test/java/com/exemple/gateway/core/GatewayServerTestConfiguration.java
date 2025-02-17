@@ -34,19 +34,19 @@ public class GatewayServerTestConfiguration {
     protected MockServerClient authorizationClient;
 
     @BeforeAll
-    public final void apiServer() {
+    void apiServer() {
         this.apiServer = ClientAndServer.startClientAndServer(apiPort);
         this.apiClient = new MockServerClient("localhost", apiPort);
     }
 
     @BeforeAll
-    public final void authorizationServer() {
+    void authorizationServer() {
         this.authorizationServer = ClientAndServer.startClientAndServer(authorizationPort);
         this.authorizationClient = new MockServerClient("localhost", authorizationPort);
     }
 
     @AfterAll
-    public final void closeMockServer() {
+    void closeMockServer() {
 
         this.apiServer.close();
         this.apiServer.hasStopped();

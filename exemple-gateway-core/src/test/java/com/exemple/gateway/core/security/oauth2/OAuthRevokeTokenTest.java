@@ -72,7 +72,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
         authorizationClient.reset();

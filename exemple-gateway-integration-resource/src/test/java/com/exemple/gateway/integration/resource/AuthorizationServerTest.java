@@ -52,7 +52,7 @@ class AuthorizationServerTest {
     private RequestSpecification requestSpecification;
 
     @BeforeEach
-    public void before() {
+    void before() {
 
         requestSpecification = RestAssured.given();
 
@@ -372,7 +372,7 @@ class AuthorizationServerTest {
         private String accessToken;
 
         @BeforeAll
-        public void createAccessToken() throws JOSEException {
+        void createAccessToken() throws JOSEException {
 
             RSAKey rasKey = new RSAKeyGenerator(2048).keyUse(KeyUse.SIGNATURE).generate();
 

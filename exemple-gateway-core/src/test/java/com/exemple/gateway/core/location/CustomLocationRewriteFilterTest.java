@@ -29,7 +29,7 @@ class CustomLocationRewriteFilterTest extends GatewayServerTestConfiguration {
     private RequestSpecification requestSpecification;
 
     @BeforeEach
-    public void before() {
+    void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
 

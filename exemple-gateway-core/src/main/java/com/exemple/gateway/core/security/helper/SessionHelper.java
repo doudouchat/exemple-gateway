@@ -37,7 +37,7 @@ public class SessionHelper {
     public List<HttpCookie> extractAllSessionCookies(ServerHttpRequest request) {
 
         Map<String, List<HttpCookie>> emptyCookies = Collections.emptyMap();
-        return ObjectUtils.defaultIfNull(request.getCookies(), CollectionUtils.toMultiValueMap(emptyCookies)).getOrDefault("JSESSIONID",
+        return ObjectUtils.getIfNull(request.getCookies(), CollectionUtils.toMultiValueMap(emptyCookies)).getOrDefault("JSESSIONID",
                 Collections.emptyList());
 
     }

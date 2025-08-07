@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-dependencies</artifactId>
-		<version>3.5.0</version>
+		<version>4.0.0</version>
 		<relativePath />
 	</parent>
 	<groupId>exemple</groupId>
@@ -68,7 +68,7 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
-				<version>4.3.0</version>
+				<version>5.0.0</version>
 			</dependency>
 
 			<!-- CLOUD SECURITY -->
@@ -79,10 +79,18 @@
 				<version>${spring-security.version}</version>
 			</dependency>
 
+			<!-- SPRING SESSION -->
+
 			<dependency>
-				<groupId>org.springframework.security</groupId>
-				<artifactId>spring-security-oauth2-resource-server</artifactId>
-				<version>${spring-security.version}</version>
+				<groupId>org.springframework.session</groupId>
+				<artifactId>spring-session-hazelcast</artifactId>
+				<version>3.5.3</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.hazelcast</groupId>
+						<artifactId>hazelcast</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 
 			<!-- MOCK SERVER -->
@@ -98,6 +106,15 @@
 				<groupId>org.mock-server</groupId>
 				<artifactId>mockserver-client-java</artifactId>
 				<version>5.15.0</version>
+				<scope>test</scope>
+			</dependency>
+
+			<!-- REST ASSURED -->
+
+			<dependency>
+				<groupId>io.rest-assured</groupId>
+				<artifactId>rest-assured</artifactId>
+				<version>6.0.0</version>
 				<scope>test</scope>
 			</dependency>
 

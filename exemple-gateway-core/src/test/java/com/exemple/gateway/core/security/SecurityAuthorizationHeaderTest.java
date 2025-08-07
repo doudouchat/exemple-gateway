@@ -15,7 +15,6 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.JsonBody;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
@@ -39,9 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-
     private RequestSpecification requestSpecification;
 
     @Autowired
@@ -53,7 +49,7 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     @BeforeEach
     void before() {
 
-        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
+        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
 
         apiClient.reset();
 
@@ -87,7 +83,7 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
         // When perform header
         Response response = requestSpecification
                 .header("Authorization", "BEARER " + token.serialize())
-                .post(restTemplate.getRootUri() + "/ExempleService/account");
+                .post("/ExempleService/account");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
@@ -112,7 +108,7 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
         // When perform header
         Response response = requestSpecification
                 .header("Authorization", "BEARER " + token.serialize())
-                .post(restTemplate.getRootUri() + "/ExempleService/account");
+                .post("/ExempleService/account");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
@@ -142,7 +138,7 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
         // When perform header
         Response response = requestSpecification
                 .header("Authorization", "BEARER " + token.serialize())
-                .post(restTemplate.getRootUri() + "/ExempleService/account");
+                .post("/ExempleService/account");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
@@ -169,7 +165,7 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
 
         // When perform header
         Response response = requestSpecification.header("Authorization", "BEARER " + token.serialize())
-                .post(restTemplate.getRootUri() + "/ExempleService/account");
+                .post("/ExempleService/account");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());

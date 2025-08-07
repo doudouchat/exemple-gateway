@@ -18,10 +18,9 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
@@ -46,15 +45,15 @@ class AuthorizationServerTest {
 
     private static final Pattern LOCATION = Pattern.compile(".*code=([a-zA-Z0-9\\-_]*)(&state=)?(.*)?", Pattern.DOTALL);
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @LocalServerPort
+    private int localPort;
 
     private RequestSpecification requestSpecification;
 
     @BeforeEach
     void before() {
 
-        requestSpecification = RestAssured.given();
+        requestSpecification = RestAssured.given().port(localPort);
 
     }
 
@@ -78,7 +77,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .contentType(ContentType.URLENC)
                     .formParams("username", "jean.dupond@gmail.com", "password", "123")
-                    .post(restTemplate.getRootUri() + "/login");
+                    .post("/login");
 
             // Then check response
 
@@ -103,7 +102,7 @@ class AuthorizationServerTest {
                     .queryParam("client_id", "resource")
                     .queryParam("scope", "test:create")
                     .queryParam("redirect_uri", "http://xxx")
-                    .get(restTemplate.getRootUri() + "/oauth/authorize");
+                    .get("/oauth/authorize");
 
             // Then check response
 
@@ -142,7 +141,7 @@ class AuthorizationServerTest {
                     .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))
                     .contentType(ContentType.URLENC)
                     .formParams(params)
-                    .post(restTemplate.getRootUri() + "/oauth/token");
+                    .post("/oauth/token");
 
             // Then check response
 
@@ -165,7 +164,7 @@ class AuthorizationServerTest {
                     .queryParam("debug", "true")
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .post(restTemplate.getRootUri() + "/ws/test");
+                    .post("/ws/test");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.CREATED.value());
         }
@@ -177,7 +176,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .get(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .get("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.OK.value());
         }
@@ -189,7 +188,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .head(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .head("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
@@ -202,7 +201,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .delete(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .delete("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
@@ -222,7 +221,7 @@ class AuthorizationServerTest {
                     .queryParam("debug", "true")
                     .contentType(ContentType.JSON)
                     .body(Collections.singletonList(patch))
-                    .patch(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .patch("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
@@ -235,7 +234,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .options(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .options("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.OK.value());
 
@@ -263,7 +262,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))
                     .formParams(params)
-                    .post(restTemplate.getRootUri() + "/oauth/token");
+                    .post("/oauth/token");
 
             // Then check response
 
@@ -286,7 +285,7 @@ class AuthorizationServerTest {
                     .queryParam("debug", "true")
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .post(restTemplate.getRootUri() + "/ws/test");
+                    .post("/ws/test");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.CREATED.value());
         }
@@ -298,7 +297,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .get(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .get("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.OK.value());
         }
@@ -310,7 +309,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .head(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .head("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
@@ -323,7 +322,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .delete(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .delete("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
@@ -343,7 +342,7 @@ class AuthorizationServerTest {
                     .queryParam("debug", "true")
                     .contentType(ContentType.JSON)
                     .body(Collections.singletonList(patch))
-                    .patch(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .patch("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
@@ -356,7 +355,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .options(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .options("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.OK.value());
 
@@ -400,7 +399,7 @@ class AuthorizationServerTest {
                     .queryParam("debug", "true")
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .post(restTemplate.getRootUri() + "/ws/test");
+                    .post("/ws/test");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
         }
@@ -412,7 +411,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .get(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .get("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
         }
@@ -424,7 +423,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .head(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .head("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 
@@ -437,7 +436,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .delete(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .delete("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 
@@ -457,7 +456,7 @@ class AuthorizationServerTest {
                     .queryParam("debug", "true")
                     .contentType(ContentType.JSON)
                     .body(Collections.singletonList(patch))
-                    .patch(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .patch("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 
@@ -470,7 +469,7 @@ class AuthorizationServerTest {
             Response response = requestSpecification
                     .header("Authorization", "Bearer " + accessToken)
                     .queryParam("debug", "true")
-                    .options(restTemplate.getRootUri() + "/ws/test/{id}", "123");
+                    .options("/ws/test/{id}", "123");
 
             assertThat(response.getStatusCode()).as(response.getBody().asPrettyString()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 

@@ -9,9 +9,6 @@
 
 	<properties>
 
-		<!-- VERSION -->
-		<maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
-
 		<application.host>http://localhost</application.host>
 
 		<test.contextpath>Test</test.contextpath>
@@ -47,6 +44,13 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<!-- HAZELCAST -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-hazelcast</artifactId>
+		</dependency>
+
 		<!-- RESOURCE TEST -->
 
 		<dependency>
@@ -61,6 +65,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-micrometer-tracing</artifactId>
 		</dependency>
 
 		<!-- REST ASSURED -->

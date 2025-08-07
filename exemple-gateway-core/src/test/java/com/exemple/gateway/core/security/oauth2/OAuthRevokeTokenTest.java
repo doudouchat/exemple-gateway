@@ -10,7 +10,6 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.Parameter;
 import org.mockserver.model.ParameterBody;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
@@ -33,9 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 @ActiveProfiles("browser")
 @Slf4j
 class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
-
-    @Autowired
-    private TestRestTemplate restTemplate;
 
     @Autowired
     private SessionRepository<Session> repository;
@@ -74,7 +70,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
     @BeforeEach
     void before() {
 
-        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
+        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
         authorizationClient.reset();
 
     }
@@ -97,7 +93,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
         // When perform post
         Response response = requestSpecification
                 .cookie("JSESSIONID", session.getId())
-                .post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/revoke_token");
+                .post("/ExempleAuthorization/oauth/revoke_token");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
@@ -125,7 +121,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
         // When perform post
         Response response = requestSpecification
                 .cookie("JSESSIONID", session.getId())
-                .post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/revoke_token");
+                .post("/ExempleAuthorization/oauth/revoke_token");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());

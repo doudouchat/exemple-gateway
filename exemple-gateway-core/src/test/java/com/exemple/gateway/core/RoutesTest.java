@@ -11,8 +11,6 @@ import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.JsonBody;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 
 import com.exemple.gateway.core.common.LoggingFilter;
@@ -25,15 +23,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class RoutesTest extends GatewayServerTestConfiguration {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-
     private RequestSpecification requestSpecification;
 
     @BeforeEach
     void before() {
 
-        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
+        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
 
         apiClient.reset();
         authorizationClient.reset();
@@ -49,7 +44,7 @@ class RoutesTest extends GatewayServerTestConfiguration {
                         .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
 
         // When perform get
-        Response response = requestSpecification.get(restTemplate.getRootUri() + "/ExempleService/info");
+        Response response = requestSpecification.get("/ExempleService/info");
 
         // Then check response
         assertAll(
@@ -66,7 +61,7 @@ class RoutesTest extends GatewayServerTestConfiguration {
                 .respond(HttpResponse.response().withStatusCode(200));
 
         // When perform get
-        Response response = requestSpecification.get(restTemplate.getRootUri() + "/ExempleAuthorization/info");
+        Response response = requestSpecification.get("/ExempleAuthorization/info");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());

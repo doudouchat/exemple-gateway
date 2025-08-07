@@ -8,6 +8,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -26,6 +27,9 @@ public class GatewayServerTestConfiguration {
 
     @Value("${authorization.port}")
     private int authorizationPort;
+
+    @LocalServerPort
+    protected int localPort;
 
     private ClientAndServer apiServer;
 

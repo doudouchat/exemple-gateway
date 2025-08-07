@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
@@ -23,15 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class RedirectionFilterTest extends GatewayServerTestConfiguration {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-
     private RequestSpecification requestSpecification;
 
     @BeforeEach
     void before() {
 
-        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
+        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
         authorizationClient.reset();
 
     }
@@ -47,7 +42,7 @@ class RedirectionFilterTest extends GatewayServerTestConfiguration {
                         .withStatusCode(302));
 
         // When perform post
-        Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/login");
+        Response response = requestSpecification.post("/ExempleAuthorization/login");
 
         // Then check response
         assertAll(
@@ -55,7 +50,7 @@ class RedirectionFilterTest extends GatewayServerTestConfiguration {
                 () -> assertThat(response.getHeader("Location")).isNull());
 
     }
-    
+
     @Test
     void redirectionMoveToKO() {
 
@@ -65,7 +60,7 @@ class RedirectionFilterTest extends GatewayServerTestConfiguration {
                         .withStatusCode(401));
 
         // When perform post
-        Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/login");
+        Response response = requestSpecification.post("/ExempleAuthorization/login");
 
         // Then check response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());

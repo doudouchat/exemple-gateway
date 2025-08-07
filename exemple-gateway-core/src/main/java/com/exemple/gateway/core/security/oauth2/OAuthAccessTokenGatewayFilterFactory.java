@@ -20,8 +20,8 @@ import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.exemple.gateway.core.security.helper.SessionHelper;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import com.nimbusds.jwt.SignedJWT;
 
 import lombok.SneakyThrows;
@@ -145,8 +145,8 @@ public class OAuthAccessTokenGatewayFilterFactory extends AbstractGatewayFilterF
 
             Assert.notNull(bodyJson.get(ACCESS_TOKEN), "access token is missing");
 
-            this.accessToken = bodyJson.path(ACCESS_TOKEN).textValue();
-            this.refreshToken = bodyJson.path(REFRESH_TOKEN).textValue();
+            this.accessToken = bodyJson.path(ACCESS_TOKEN).asString(null);
+            this.refreshToken = bodyJson.path(REFRESH_TOKEN).asString(null);
             ((ObjectNode) bodyJson).remove(List.of(ACCESS_TOKEN, REFRESH_TOKEN));
             this.body = bodyJson.toString();
 

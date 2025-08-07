@@ -3,7 +3,6 @@ package com.exemple.gateway.core.security.oauth2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -23,7 +22,6 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.JsonBody;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
@@ -32,7 +30,6 @@ import org.springframework.test.context.NestedTestConfiguration;
 
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
 import com.exemple.gateway.core.common.LoggingFilter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -45,6 +42,7 @@ import io.restassured.http.Cookie;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 @ActiveProfiles("browser")
 @Slf4j
@@ -52,9 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    @Autowired
-    private TestRestTemplate restTemplate;
 
     @Autowired
     private SessionRepository<Session> repository;
@@ -97,7 +92,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
     @BeforeEach
     void before() {
 
-        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG));
+        requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
 
         apiClient.reset();
         authorizationClient.reset();
@@ -113,7 +108,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
         @Test
         @Order(1)
-        void token() throws IOException {
+        void token() {
 
             // Given mock client
             var responseBody = Map.of(
@@ -129,7 +124,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                             .withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
 
             // When perform post
-            Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+            Response response = requestSpecification.post("/ExempleAuthorization/oauth/token");
 
             // Then check response
             assertAll(
@@ -170,7 +165,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                     .cookie("JSESSIONID", session.getId())
                     .cookie("XSRF-TOKEN", "test")
                     .header("X-XSRF-TOKEN", "test")
-                    .post(restTemplate.getRootUri() + "/ExempleService/account");
+                    .post("/ExempleService/account");
 
             // Then check response
             assertAll(
@@ -192,7 +187,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
         @Test
         @Order(1)
-        void token() throws IOException {
+        void token() {
 
             // Given mock client
             var responseBody = Map.of(
@@ -205,7 +200,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                             .withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
 
             // When perform post
-            Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+            Response response = requestSpecification.post("/ExempleAuthorization/oauth/token");
 
             // Then check response
             assertAll(
@@ -250,7 +245,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                     .cookie("JSESSIONID", sessionId.getValue())
                     .cookie("XSRF-TOKEN", xsrfToken.getValue())
                     .header("X-XSRF-TOKEN", xsrfToken.getValue())
-                    .post(restTemplate.getRootUri() + "/ExempleService/account");
+                    .post("/ExempleService/account");
 
             // Then check response
             assertAll(
@@ -267,7 +262,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
             Response response = requestSpecification
                     .cookie("JSESSIONID", sessionId.getValue())
                     .cookie("XSRF-TOKEN", xsrfToken.getValue())
-                    .header("X-XSRF-TOKEN", "toto").post(restTemplate.getRootUri() + "/ExempleService/account");
+                    .header("X-XSRF-TOKEN", "toto").post("/ExempleService/account");
 
             // Then check response
             assertAll(
@@ -289,7 +284,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
         @Test
         @Order(1)
-        void token() throws IOException {
+        void token() {
 
             // Create session
             var session = repository.createSession();
@@ -306,7 +301,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
             // When perform post
             Response response = requestSpecification
                     .cookie("JSESSIONID", session.getId())
-                    .post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+                    .post("/ExempleAuthorization/oauth/token");
 
             // Then check response
             assertAll(
@@ -348,7 +343,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                     .cookie("JSESSIONID", sessionId.getValue())
                     .cookie("XSRF-TOKEN", xsrfToken.getValue())
                     .header("X-XSRF-TOKEN", xsrfToken.getValue())
-                    .post(restTemplate.getRootUri() + "/ExempleService/account");
+                    .post("/ExempleService/account");
 
             // Then check response
             assertAll(
@@ -382,7 +377,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                             .withStatusCode(HttpStatus.UNAUTHORIZED.value()));
 
             // When perform post
-            Response response = requestSpecification.post(restTemplate.getRootUri() + "/ExempleAuthorization/oauth/token");
+            Response response = requestSpecification.post("/ExempleAuthorization/oauth/token");
 
             // Then check response
             assertAll(
@@ -407,7 +402,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                     .cookie("JSESSIONID", session.getId())
                     .cookie("XSRF-TOKEN", "test")
                     .header("X-XSRF-TOKEN", "test")
-                    .post(restTemplate.getRootUri() + "/ExempleService/account");
+                    .post("/ExempleService/account");
 
             // Then check response
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());

@@ -20,42 +20,44 @@ spring:
                public-key-location: classpath:public_key
    cloud:
       gateway:
-         routes:
-         -  id: api-service
-            uri: http://localhost:${api.port}
-            predicates:
-            - Path=/ExempleService/**
-            filters:
-            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-            - AccessTokenRelay=
-         -  id: authorization-token
-            uri: http://localhost:${authorization.port}
-            predicates:
-            - Path=/ExempleAuthorization/oauth/token
-            filters:
-            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-            - OAuthAccessToken=
-            - AddCsrfToken=
-         -  id: authorization-revoke-token
-            uri: http://localhost:${authorization.port}
-            predicates:
-            - Path=/ExempleAuthorization/oauth/revoke_token
-            filters:
-            - OAuthRevokeToken=
-         -  id: authorization-login
-            uri: http://localhost:${authorization.port}
-            predicates:
-            - Path=/ExempleAuthorization/login
-            filters:
-            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-            - SetStatus200IfRedirection=
-            - RemoveResponseHeader=Location
-         -  id: authorization-service
-            uri: http://localhost:${authorization.port}
-            predicates:
-            - Path=/ExempleAuthorization/**
-            filters:
-            - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+         server:
+            webflux:
+               routes:
+               -  id: api-service
+                  uri: http://localhost:${api.port}
+                  predicates:
+                  - Path=/ExempleService/**
+                  filters:
+                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+                  - AccessTokenRelay=
+               -  id: authorization-token
+                  uri: http://localhost:${authorization.port}
+                  predicates:
+                  - Path=/ExempleAuthorization/oauth/token
+                  filters:
+                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+                  - OAuthAccessToken=
+                  - AddCsrfToken=
+               -  id: authorization-revoke-token
+                  uri: http://localhost:${authorization.port}
+                  predicates:
+                  - Path=/ExempleAuthorization/oauth/revoke_token
+                  filters:
+                  - OAuthRevokeToken=
+               -  id: authorization-login
+                  uri: http://localhost:${authorization.port}
+                  predicates:
+                  - Path=/ExempleAuthorization/login
+                  filters:
+                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+                  - SetStatus200IfRedirection=
+                  - RemoveResponseHeader=Location
+               -  id: authorization-service
+                  uri: http://localhost:${authorization.port}
+                  predicates:
+                  - Path=/ExempleAuthorization/**
+                  filters:
+                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
 api:
    port: ${api.port}
 authorization:

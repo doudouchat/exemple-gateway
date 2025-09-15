@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.NestedTestConfiguration;
 
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
 import com.exemple.gateway.core.common.LoggingFilter;
@@ -47,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @ActiveProfiles("browser")
 @Slf4j
+@NestedTestConfiguration(NestedTestConfiguration.EnclosingConfiguration.OVERRIDE)
 class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();

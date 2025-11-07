@@ -10,6 +10,6 @@
 
 ## Docker
 
-<p>build image <code>docker build -t exemple-gateway --build-arg VERSION_OPENJDK=@Tag .</code></p>
+<p>build image <code>docker build -t exemple-gateway --build-arg VERSION_TEMURIN=@Tag .</code></p>
 
-<p>exemple build image <code>docker build -t exemple-gateway --build-arg VERSION_OPENJDK=21-jdk .</code>
+<p>exemple build image <code>docker build -t exemple-gateway --build-arg VERSION_TEMURIN=21-jdk .</code>

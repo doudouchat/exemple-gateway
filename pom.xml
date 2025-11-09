@@ -46,6 +46,7 @@
 
 		<!-- VERSION -->
 		<jacoco.version>0.8.12</jacoco.version>
+		<groovy.version>4.0.29</groovy.version>
 
 		<!-- PORT -->
 

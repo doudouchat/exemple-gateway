@@ -7,10 +7,6 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.model.Header;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.JsonBody;
 import org.springframework.http.HttpStatus;
 
 import com.exemple.gateway.core.common.LoggingFilter;
@@ -19,29 +15,33 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 class RoutesTest extends GatewayServerTestConfiguration {
 
     private RequestSpecification requestSpecification;
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     @BeforeEach
     void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
-
-        apiClient.reset();
-        authorizationClient.reset();
 
     }
 
     @Test
     void api() {
 
-        // Given mock client
-        apiClient.when(HttpRequest.request().withMethod("GET").withPath("/ExempleService/info"))
-                .respond(HttpResponse.response().withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
-                        .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+        // Given mock server
+        apiServer.url("/ExempleService/info");
+        apiServer.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .addHeader("Location", "http://localhost:" + this.apiServer.getPort() + "/ExempleService/123")
+                .setResponseCode(200)
+                .setBody(MAPPER.writeValueAsString(Collections.singletonMap("name", "jean"))));
 
         // When perform get
         Response response = requestSpecification.get("/ExempleService/info");
@@ -56,9 +56,10 @@ class RoutesTest extends GatewayServerTestConfiguration {
     @Test
     void authorization() {
 
-        // Given mock client
-        authorizationClient.when(HttpRequest.request().withMethod("GET").withPath("/ExempleAuthorization/info"))
-                .respond(HttpResponse.response().withStatusCode(200));
+        // Given mock server
+        authorizationServer.url("/ExempleAuthorization/info");
+        authorizationServer.enqueue(new MockResponse()
+                .setResponseCode(200));
 
         // When perform get
         Response response = requestSpecification.get("/ExempleAuthorization/info");

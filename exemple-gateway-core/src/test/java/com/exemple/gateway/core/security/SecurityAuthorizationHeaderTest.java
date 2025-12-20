@@ -10,10 +10,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.model.Header;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.JsonBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -34,9 +30,13 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private RequestSpecification requestSpecification;
 
@@ -50,8 +50,6 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
-
-        apiClient.reset();
 
     }
 
@@ -69,16 +67,12 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
         var token = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
         token.sign(signer);
 
-        // And mock client
-        apiClient
-                .when(HttpRequest.request()
-                        .withMethod("POST")
-                        .withHeader("Authorization", "BEARER " + token.serialize())
-                        .withPath("/ExempleService/account"))
-                .respond(HttpResponse.response()
-                        .withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"))
-                        .withBody(JsonBody.json(Collections.singletonMap("name", "jean")))
-                        .withStatusCode(200));
+        // And mock server
+        apiServer.url("/ExempleService/info");
+        apiServer.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .setResponseCode(200)
+                .setBody(MAPPER.writeValueAsString(Collections.singletonMap("name", "jean"))));
 
         // When perform header
         Response response = requestSpecification

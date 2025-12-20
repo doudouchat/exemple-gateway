@@ -5,10 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.Parameter;
-import org.mockserver.model.ParameterBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.session.Session;
@@ -28,6 +24,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
 
 @ActiveProfiles("browser")
 @Slf4j
@@ -71,7 +68,6 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
     void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
-        authorizationClient.reset();
 
     }
 
@@ -85,10 +81,9 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
         repository.save(session);
 
         // And mock client
-        authorizationClient.when(HttpRequest.request().withMethod("POST")
-                .withBody(new ParameterBody(new Parameter("token", ACCESS_TOKEN.serialize())))
-                .withPath("/ExempleAuthorization/oauth/revoke_token"))
-                .respond(HttpResponse.response().withStatusCode(204));
+        authorizationServer.url("/ExempleAuthorization/oauth/revoke_token");
+        authorizationServer.enqueue(new MockResponse()
+                .setResponseCode(204));
 
         // When perform post
         Response response = requestSpecification
@@ -112,11 +107,10 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
         session.setAttribute("refresh_token", REFRESH_TOKEN.serialize());
         repository.save(session);
 
-        // And mock client
-        authorizationClient.when(HttpRequest.request().withMethod("POST")
-                .withBody(new ParameterBody(new Parameter("token", ACCESS_TOKEN.serialize())))
-                .withPath("/ExempleAuthorization/oauth/revoke_token"))
-                .respond(HttpResponse.response().withStatusCode(500));
+        // And mock server
+        authorizationServer.url("/ExempleAuthorization/oauth/revoke_token");
+        authorizationServer.enqueue(new MockResponse()
+                .setResponseCode(500));
 
         // When perform post
         Response response = requestSpecification

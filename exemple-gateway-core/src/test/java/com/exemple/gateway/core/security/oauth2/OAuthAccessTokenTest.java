@@ -18,9 +18,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.JsonBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.session.Session;
@@ -41,6 +38,7 @@ import io.restassured.http.Cookie;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
 import tools.jackson.databind.ObjectMapper;
 
 @ActiveProfiles("browser")
@@ -92,9 +90,6 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
 
-        apiClient.reset();
-        authorizationClient.reset();
-
     }
 
     @Nested
@@ -108,7 +103,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
         @Order(1)
         void token() {
 
-            // Given mock client
+            // Given mock server
             var responseBody = Map.of(
                     "access_token", ACCESS_TOKEN.serialize(),
                     "refresh_token", REFRESH_TOKEN.serialize(),
@@ -116,10 +111,11 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                     "token_type", "Bearer",
                     "expires_in", 300);
 
-            authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                    .respond(HttpResponse.response()
-                            .withHeader("Content-Type", "application/json;charset=UTF-8")
-                            .withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+            authorizationServer.url("/ExempleAuthorization/oauth/revoke_token");
+            authorizationServer.enqueue(new MockResponse()
+                    .addHeader("Content-Type", "application/json;charset=UTF-8")
+                    .setBody(MAPPER.writeValueAsString(responseBody))
+                    .setResponseCode(200));
 
             // When perform post
             Response response = requestSpecification.post("/ExempleAuthorization/oauth/token");
@@ -151,12 +147,11 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
         @Order(2)
         void securitySuccess() {
 
-            // Given mock client
-            apiClient
-                    .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
-                            .withPath("/ExempleService/account"))
-                    .respond(HttpResponse.response()
-                            .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+            // Given mock server
+            apiServer.url("/ExempleService/account");
+            apiServer.enqueue(new MockResponse()
+                    .setResponseCode(200)
+                    .setBody(MAPPER.writeValueAsString(Collections.singletonMap("name", "jean"))));
 
             // When perform post
             Response response = requestSpecification
@@ -187,15 +182,16 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
         @Order(1)
         void token() {
 
-            // Given mock client
+            // Given mock server
             var responseBody = Map.of(
                     "access_token", ACCESS_TOKEN.serialize(),
                     "scope", "account:read");
 
-            authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                    .respond(HttpResponse.response()
-                            .withHeader("Content-Type", "application/json;charset=UTF-8")
-                            .withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+            authorizationServer.url("/ExempleAuthorization/oauth/token");
+            authorizationServer.enqueue(new MockResponse()
+                    .addHeader("Content-Type", "application/json;charset=UTF-8")
+                    .setBody(MAPPER.writeValueAsString(responseBody))
+                    .setResponseCode(200));
 
             // When perform post
             Response response = requestSpecification.post("/ExempleAuthorization/oauth/token");
@@ -231,12 +227,11 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
         @Order(2)
         void securitySuccess() {
 
-            // Given mock client
-            apiClient
-                    .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
-                            .withPath("/ExempleService/account"))
-                    .respond(HttpResponse.response()
-                            .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+            // Given mock server
+            apiServer.url("/ExempleService/account");
+            apiServer.enqueue(new MockResponse()
+                    .setResponseCode(200)
+                    .setBody(MAPPER.writeValueAsString(Collections.singletonMap("name", "jean"))));
 
             // When perform post
             Response response = requestSpecification
@@ -292,9 +287,10 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                     "access_token", ACCESS_TOKEN.serialize(),
                     "scope", "account:read");
 
-            authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                    .respond(HttpResponse.response()
-                            .withBody(MAPPER.writeValueAsString(responseBody)).withStatusCode(200));
+            authorizationServer.url("/ExempleAuthorization/oauth/token");
+            authorizationServer.enqueue(new MockResponse()
+                    .setBody(MAPPER.writeValueAsString(responseBody))
+                    .setResponseCode(200));
 
             // When perform post
             Response response = requestSpecification
@@ -329,12 +325,11 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
         @Order(2)
         void securitySuccess() {
 
-            // Given mock client
-            apiClient
-                    .when(HttpRequest.request().withMethod("POST").withHeader("Authorization", "BEARER " + ACCESS_TOKEN.serialize())
-                            .withPath("/ExempleService/account"))
-                    .respond(HttpResponse.response()
-                            .withBody(JsonBody.json(Collections.singletonMap("name", "jean"))).withStatusCode(200));
+            // Given mock server
+            apiServer.url("/ExempleService/account");
+            apiServer.enqueue(new MockResponse()
+                    .setResponseCode(200)
+                    .setBody(MAPPER.writeValueAsString(Collections.singletonMap("name", "jean"))));
 
             // When perform post
             Response response = requestSpecification
@@ -368,11 +363,11 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
         @Order(1)
         void token() {
 
-            // Given mock client
-            authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/token"))
-                    .respond(HttpResponse.response()
-                            .withBody(JsonBody.json(Collections.singletonMap("error", "invalid_grant")))
-                            .withStatusCode(HttpStatus.UNAUTHORIZED.value()));
+            // Given mock server
+            authorizationServer.url("/ExempleAuthorization/oauth/token");
+            authorizationServer.enqueue(new MockResponse()
+                    .setBody(MAPPER.writeValueAsString(Collections.singletonMap("error", "invalid_grant")))
+                    .setResponseCode(401));
 
             // When perform post
             Response response = requestSpecification.post("/ExempleAuthorization/oauth/token");

@@ -5,9 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.model.Header;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
 import org.springframework.http.HttpStatus;
 
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
@@ -17,6 +14,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
 
 @Slf4j
 class CustomLocationRewriteFilterTest extends GatewayServerTestConfiguration {
@@ -28,21 +26,17 @@ class CustomLocationRewriteFilterTest extends GatewayServerTestConfiguration {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
 
-        apiClient.reset();
-        authorizationClient.reset();
-
     }
 
     @Test
     void location201Rewrite() {
 
-        // Given mock client
-        apiClient.when(HttpRequest.request().withMethod("GET").withPath("/ExempleService/info"))
-                .respond(
-                        HttpResponse.response()
-                                .withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"),
-                                        new Header("Location", "http://localhost:" + this.apiClient.getPort() + "/ExempleService/123"))
-                                .withStatusCode(201));
+        // Given mock server
+        apiServer.url("/ExempleService/info");
+        apiServer.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .addHeader("Location", "http://localhost:" + this.apiServer.getPort() + "/ExempleService/123")
+                .setResponseCode(201));
 
         // When perform get
         Response response = requestSpecification.get("/ExempleService/info");
@@ -57,12 +51,12 @@ class CustomLocationRewriteFilterTest extends GatewayServerTestConfiguration {
     @Test
     void location302Rewrite() {
 
-        // Given mock client
-        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/oauth/info"))
-                .respond(HttpResponse.response()
-                        .withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"),
-                                new Header("Location", "http://localhost:" + this.authorizationClient.getPort() + "/ExempleAuthorization/123"))
-                        .withStatusCode(302));
+        // Given mock server
+        authorizationServer.url("/ExempleAuthorization/oauth/info");
+        authorizationServer.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .addHeader("Location", "http://localhost:" + this.authorizationServer.getPort() + "/ExempleAuthorization/123")
+                .setResponseCode(302));
 
         // When perform post
         Response response = requestSpecification.post("/ExempleAuthorization/oauth/info");

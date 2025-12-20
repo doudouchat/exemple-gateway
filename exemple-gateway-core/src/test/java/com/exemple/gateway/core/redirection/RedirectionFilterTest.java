@@ -5,9 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.model.Header;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
 import org.springframework.http.HttpStatus;
 
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
@@ -17,6 +14,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
 
 @Slf4j
 class RedirectionFilterTest extends GatewayServerTestConfiguration {
@@ -27,19 +25,18 @@ class RedirectionFilterTest extends GatewayServerTestConfiguration {
     void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
-        authorizationClient.reset();
 
     }
 
     @Test
     void redirectionMoveToOk() {
 
-        // Given mock client
-        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/login"))
-                .respond(HttpResponse.response()
-                        .withHeaders(new Header("Content-Type", "application/json;charset=UTF-8"),
-                                new Header("Location", "http://localhost:" + this.authorizationClient.getPort() + "/ExempleAuthorization/123"))
-                        .withStatusCode(302));
+        // Given mock server
+        authorizationServer.url("/ExempleAuthorization/login");
+        authorizationServer.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json;charset=UTF-8")
+                .addHeader("Location", "http://localhost:" + this.authorizationServer.getPort() + "/ExempleAuthorization/123")
+                .setResponseCode(302));
 
         // When perform post
         Response response = requestSpecification.post("/ExempleAuthorization/login");
@@ -54,10 +51,10 @@ class RedirectionFilterTest extends GatewayServerTestConfiguration {
     @Test
     void redirectionMoveToKO() {
 
-        // Given mock client
-        authorizationClient.when(HttpRequest.request().withMethod("POST").withPath("/ExempleAuthorization/login"))
-                .respond(HttpResponse.response()
-                        .withStatusCode(401));
+        // Given mock server
+        authorizationServer.url("/ExempleAuthorization/login");
+        authorizationServer.enqueue(new MockResponse()
+                .setResponseCode(401));
 
         // When perform post
         Response response = requestSpecification.post("/ExempleAuthorization/login");

@@ -177,7 +177,7 @@ public class ApiStepDefinitions {
     @When("perform options with JSESSIONID")
     public void optionsWithJSessionId() {
 
-        Response response = JsonRestTemplate.api()
+        Response response = JsonRestTemplate.browser()
                 .cookie("JSESSIONID", authorizationContext.getSessionId().getValue())
                 .cookie("XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
                 .queryParam("debug", "true")

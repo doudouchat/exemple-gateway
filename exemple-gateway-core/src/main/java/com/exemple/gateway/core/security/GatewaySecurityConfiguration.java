@@ -12,6 +12,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
 import org.springframework.security.web.server.csrf.CsrfWebFilter;
 import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
@@ -37,6 +38,7 @@ public class GatewaySecurityConfiguration {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, Customizer<CsrfSpec> csrfCustomizer) {
 
         return http
+                .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .cors(Customizer.withDefaults())
                 .authorizeExchange(authorize -> authorize
                         .pathMatchers(this.excludes).permitAll()

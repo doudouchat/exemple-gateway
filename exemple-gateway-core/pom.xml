@@ -38,8 +38,8 @@
 		<!-- SPRING SESSION -->
 
 		<dependency>
-			<groupId>org.springframework.session</groupId>
-			<artifactId>spring-session-hazelcast</artifactId>
+			<groupId>com.hazelcast.spring</groupId>
+			<artifactId>hazelcast-spring-session</artifactId>
 		</dependency>
 
 		<!-- HAZELCAST -->

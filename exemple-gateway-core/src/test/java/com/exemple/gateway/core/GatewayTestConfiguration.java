@@ -12,7 +12,6 @@ import java.time.ZoneId;
 import java.util.Collections;
 
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -21,9 +20,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 import com.nimbusds.jose.JWSSignerOption;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.opts.AllowWeakRSAKey;
@@ -37,17 +33,6 @@ public class GatewayTestConfiguration {
     @Primary
     public Clock fixed() {
         return Clock.fixed(Instant.now(), ZoneId.systemDefault());
-    }
-
-    @Bean
-    public HazelcastInstance hazelcastInstance(@Value("${hazelcast.port}") int port) {
-
-        Config config = new Config();
-        config.getNetworkConfig().setPort(port);
-        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
-        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
-
-        return Hazelcast.newHazelcastInstance(config);
     }
 
     @Bean

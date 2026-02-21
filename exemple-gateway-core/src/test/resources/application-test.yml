@@ -64,5 +64,3 @@ authorization:
    port: ${authorization.port}
 public_key: classpath:public_key
 private_key: classpath:private_key
-hazelcast:
-   port: ${hazelcast.port}

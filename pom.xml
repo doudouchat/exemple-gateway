@@ -82,9 +82,9 @@
 			<!-- SPRING SESSION -->
 
 			<dependency>
-				<groupId>org.springframework.session</groupId>
-				<artifactId>spring-session-hazelcast</artifactId>
-				<version>3.5.3</version>
+				<groupId>com.hazelcast.spring</groupId>
+				<artifactId>hazelcast-spring-session</artifactId>
+				<version>4.0.0</version>
 				<exclusions>
 					<exclusion>
 						<groupId>com.hazelcast</groupId>
@@ -330,3 +330,4 @@
 	</build>
 
 </project>
+

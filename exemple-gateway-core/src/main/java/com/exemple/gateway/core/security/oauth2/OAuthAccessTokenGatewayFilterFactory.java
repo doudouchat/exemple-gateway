@@ -1,7 +1,6 @@
 package com.exemple.gateway.core.security.oauth2;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -20,13 +19,13 @@ import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.exemple.gateway.core.security.helper.SessionHelper;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 import com.nimbusds.jwt.SignedJWT;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 @Component
 @Slf4j
@@ -118,7 +117,7 @@ public class OAuthAccessTokenGatewayFilterFactory extends AbstractGatewayFilterF
         session.setAttribute(ACCESS_TOKEN, accessToken);
         var expiresAt = SignedJWT.parse(accessToken).getJWTClaimsSet().getExpirationTime();
         Assert.notNull(expiresAt, "exp is required");
-        session.setMaxInactiveInterval(Duration.between(Instant.now(clock), expiresAt.toInstant()));
+        session.setMaxInactiveInterval(Instant.now(clock).until(expiresAt.toInstant()));
         LOG.debug("save access token in session {}", session.getId());
     }
 

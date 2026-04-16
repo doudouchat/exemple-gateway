@@ -55,7 +55,7 @@ public class OAuthRevokeTokenGatewayFilterFactory extends AbstractGatewayFilterF
         };
 
         return (ServerWebExchange exchange, GatewayFilterChain chain) -> modifyRequestFactory.apply(modifyRequestConfig).filter(exchange, chain)
-                .doOnSuccess((Void v) -> deleteSession.accept(exchange));
+                .doOnSuccess(_ -> deleteSession.accept(exchange));
 
     }
 

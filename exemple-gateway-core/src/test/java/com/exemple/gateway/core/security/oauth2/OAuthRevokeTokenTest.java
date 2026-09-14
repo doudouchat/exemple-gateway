@@ -35,8 +35,8 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
 
     private RequestSpecification requestSpecification;
 
-    private SignedJWT ACCESS_TOKEN;
-    private SignedJWT REFRESH_TOKEN;
+    private SignedJWT accessToken;
+    private SignedJWT refreshToken;
 
     @Autowired
     private RSASSASigner signer;
@@ -50,8 +50,8 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
                 .claim("scope", new String[] { "account:read" })
                 .build();
 
-        ACCESS_TOKEN = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadAccessToken);
-        ACCESS_TOKEN.sign(signer);
+        accessToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadAccessToken);
+        accessToken.sign(signer);
 
         var payloadRefreshToken = new JWTClaimsSet.Builder()
                 .claim("user_name", "john_doe")
@@ -59,8 +59,8 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
                 .claim("scope", new String[] { "account:read" })
                 .build();
 
-        REFRESH_TOKEN = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadRefreshToken);
-        REFRESH_TOKEN.sign(signer);
+        refreshToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadRefreshToken);
+        refreshToken.sign(signer);
 
     }
 
@@ -76,8 +76,8 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
 
         // Create session
         var session = repository.createSession();
-        session.setAttribute("access_token", ACCESS_TOKEN.serialize());
-        session.setAttribute("refresh_token", REFRESH_TOKEN.serialize());
+        session.setAttribute("access_token", accessToken.serialize());
+        session.setAttribute("refresh_token", refreshToken.serialize());
         repository.save(session);
 
         // And mock client
@@ -103,8 +103,8 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
 
         // Create session
         var session = repository.createSession();
-        session.setAttribute("access_token", ACCESS_TOKEN.serialize());
-        session.setAttribute("refresh_token", REFRESH_TOKEN.serialize());
+        session.setAttribute("access_token", accessToken.serialize());
+        session.setAttribute("refresh_token", refreshToken.serialize());
         repository.save(session);
 
         // And mock server

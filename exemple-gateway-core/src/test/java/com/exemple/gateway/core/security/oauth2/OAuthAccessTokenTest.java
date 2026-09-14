@@ -52,8 +52,8 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
     private RequestSpecification requestSpecification;
 
-    private SignedJWT ACCESS_TOKEN;
-    private SignedJWT REFRESH_TOKEN;
+    private SignedJWT accessToken;
+    private SignedJWT refreshToken;
 
     @Autowired
     private RSASSASigner signer;
@@ -71,8 +71,8 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                 .claim("scope", new String[] { "account:read" })
                 .build();
 
-        ACCESS_TOKEN = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadAccessToken);
-        ACCESS_TOKEN.sign(signer);
+        accessToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadAccessToken);
+        accessToken.sign(signer);
 
         var payloadRefreshToken = new JWTClaimsSet.Builder()
                 .claim("user_name", "john_doe")
@@ -80,8 +80,8 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
                 .claim("scope", new String[] { "account:read" })
                 .build();
 
-        REFRESH_TOKEN = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadRefreshToken);
-        REFRESH_TOKEN.sign(signer);
+        refreshToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadRefreshToken);
+        refreshToken.sign(signer);
 
     }
 
@@ -105,8 +105,8 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
             // Given mock server
             var responseBody = Map.of(
-                    "access_token", ACCESS_TOKEN.serialize(),
-                    "refresh_token", REFRESH_TOKEN.serialize(),
+                    "access_token", accessToken.serialize(),
+                    "refresh_token", refreshToken.serialize(),
                     "scope", "account:read",
                     "token_type", "Bearer",
                     "expires_in", 300);
@@ -138,8 +138,8 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
             // And check session
             session = repository.findById(sessionId.getValue());
             assertAll(
-                    () -> assertThat((String) session.getAttribute("access_token")).isEqualTo(ACCESS_TOKEN.serialize()),
-                    () -> assertThat((String) session.getAttribute("refresh_token")).isEqualTo(REFRESH_TOKEN.serialize()));
+                    () -> assertThat((String) session.getAttribute("access_token")).isEqualTo(accessToken.serialize()),
+                    () -> assertThat((String) session.getAttribute("refresh_token")).isEqualTo(refreshToken.serialize()));
 
         }
 
@@ -184,7 +184,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
             // Given mock server
             var responseBody = Map.of(
-                    "access_token", ACCESS_TOKEN.serialize(),
+                    "access_token", accessToken.serialize(),
                     "scope", "account:read");
 
             authorizationServer.url("/ExempleAuthorization/oauth/token");
@@ -284,7 +284,7 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
             // Given mock client
             var responseBody = Map.of(
-                    "access_token", ACCESS_TOKEN.serialize(),
+                    "access_token", accessToken.serialize(),
                     "scope", "account:read");
 
             authorizationServer.url("/ExempleAuthorization/oauth/token");

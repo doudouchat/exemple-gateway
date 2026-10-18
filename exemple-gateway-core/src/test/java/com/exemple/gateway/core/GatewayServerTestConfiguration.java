@@ -32,13 +32,9 @@ public class GatewayServerTestConfiguration {
     protected MockWebServer authorizationServer;
 
     @BeforeAll
-    void apiServer() throws IOException {
+    void startMockServer() throws IOException {
         this.apiServer = new MockWebServer();
         this.apiServer.start(apiPort);
-    }
-
-    @BeforeAll
-    void authorizationServer() throws IOException {
         this.authorizationServer = new MockWebServer();
         this.authorizationServer.start(authorizationPort);
     }

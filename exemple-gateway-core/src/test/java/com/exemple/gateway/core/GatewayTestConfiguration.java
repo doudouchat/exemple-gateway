@@ -1,5 +1,9 @@
 package com.exemple.gateway.core;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
@@ -19,10 +23,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
 import com.nimbusds.jose.JWSSignerOption;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.opts.AllowWeakRSAKey;
+
+import reactor.core.publisher.Mono;
 
 @Configuration
 @Import({ GatewayConfiguration.class })
@@ -33,6 +44,25 @@ public class GatewayTestConfiguration {
     @Primary
     public Clock fixed() {
         return Clock.fixed(Instant.now(), ZoneId.systemDefault());
+    }
+
+    @Bean
+    @Primary
+    public ReactiveOAuth2AuthorizedClientManager authorizedClientManagerMock() {
+        ReactiveOAuth2AuthorizedClientManager authorizedClientManager = mock(ReactiveOAuth2AuthorizedClientManager.class);
+
+        OAuth2AuthorizedClient oAuth2AuthorizedClient = new OAuth2AuthorizedClient(
+                ClientRegistration.withRegistrationId("exemple")
+                        .clientId("test-client-id")
+                        .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                        .tokenUri("http://localhost/token")
+                        .build(),
+                "test",
+                new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "test-access-token", Instant.now(), Instant.now().plusSeconds(3600)));
+
+        when(authorizedClientManager.authorize(any())).thenReturn(Mono.just(oAuth2AuthorizedClient));
+
+        return authorizedClientManager;
     }
 
     @Bean

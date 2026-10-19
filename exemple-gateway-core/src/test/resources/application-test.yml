@@ -7,7 +7,7 @@ logging:
       org.springframework.cloud.gateway: DEBUG
 gateway:
    security:
-      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /ExempleAuthorization/**
+      excludes: /*/info, /*/health, /*/openapi.json, /ExempleAuthorization/**
       csrf:
          excludes: /ExempleAuthorization/oauth/*
 spring:
@@ -18,6 +18,26 @@ spring:
          resourceserver:
             jwt:
                public-key-location: classpath:public_key
+         client:
+            provider:
+               test:
+                  token-uri: http://test/token
+                  authorization-uri: http://test/authorize
+            registration:
+                exemple-user:
+                  client-id: client-user
+                  client-secret: client-user-secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: authorization_code
+                  redirect-uri: http://test/redirect-uri
+                  provider: test
+                exemple-app:
+                  client-id: client-app
+                  client-secret: client-app-secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: authorization_code
+                  redirect-uri: http://test/redirect-uri
+                  provider: test
    cloud:
       gateway:
          server:
@@ -29,7 +49,7 @@ spring:
                   - Path=/ExempleService/**
                   filters:
                   - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-                  - AccessTokenRelay=
+                  - TokenRelay=exemple-user
                -  id: authorization-token
                   uri: http://localhost:${authorization.port}
                   predicates:

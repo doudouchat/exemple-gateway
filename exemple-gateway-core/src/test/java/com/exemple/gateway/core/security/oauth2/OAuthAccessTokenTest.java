@@ -145,10 +145,10 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
 
         @Test
         @Order(2)
-        void securitySuccess() {
+        void securitySuccess() throws InterruptedException {
 
             // Given mock server
-            apiServer.url("/ExempleService/account");
+            apiServer.url("/ExempleService/accounts");
             apiServer.enqueue(new MockResponse()
                     .setResponseCode(200)
                     .setBody(MAPPER.writeValueAsString(Collections.singletonMap("name", "jean"))));
@@ -164,6 +164,9 @@ class OAuthAccessTokenTest extends GatewayServerTestConfiguration {
             assertAll(
                     () -> assertThat(response.getStatusCode()).as(response.getBody().prettyPrint()).isEqualTo(HttpStatus.OK.value()),
                     () -> assertThat(response.jsonPath().getString("name")).isEqualTo("jean"));
+
+            // And check request
+            assertThat(apiServer.takeRequest().getHeader("Authorization")).isEqualTo("Bearer test-access-token");
 
         }
 

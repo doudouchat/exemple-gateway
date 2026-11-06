@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
@@ -30,13 +29,9 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.mockwebserver.MockResponse;
-import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private RequestSpecification requestSpecification;
 
@@ -50,37 +45,6 @@ class SecurityAuthorizationHeaderTest extends GatewayServerTestConfiguration {
     void before() {
 
         requestSpecification = RestAssured.given().filters(new LoggingFilter(LOG)).port(this.localPort);
-
-    }
-
-    @Test
-    void securitySuccess() throws JOSEException {
-
-        // Given build token
-        var payload = new JWTClaimsSet.Builder()
-                .jwtID(UUID.randomUUID().toString())
-                .claim("user_name", "john_doe")
-                .audience("test")
-                .claim("scope", new String[] { "account:read" })
-                .build();
-
-        var token = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
-        token.sign(signer);
-
-        // And mock server
-        apiServer.url("/ExempleService/info");
-        apiServer.enqueue(new MockResponse()
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .setResponseCode(200)
-                .setBody(MAPPER.writeValueAsString(Collections.singletonMap("name", "jean"))));
-
-        // When perform header
-        Response response = requestSpecification
-                .header("Authorization", "BEARER " + token.serialize())
-                .post("/ExempleService/account");
-
-        // Then check response
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
 
     }
 

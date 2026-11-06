@@ -28,6 +28,7 @@ public class CookieTokenExtractor implements ServerAuthenticationConverter {
 
         Supplier<Mono<Authentication>> extractCookie = () -> Mono.justOrEmpty(sessionHelper.extractSessionCookie(exchange.getRequest())
                 .map(SessionCookie::session)
+                .filter(session -> session.getAttribute("access_token") != null)
                 .map(session -> new BearerTokenAuthenticationToken(session.getAttribute("access_token"))));
 
         return this.defaultTokenExtractor.convert(exchange).switchIfEmpty(Mono.defer(extractCookie));

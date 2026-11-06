@@ -13,6 +13,19 @@ spring:
          resourceserver:
             jwt:
                jwk-set-uri: http://host.docker.internal:${test.port}/Test/oauth/jwks
+         client:
+            provider:
+               test:
+                  token-uri: ttp://host.docker.internal:${test.port}/Test/oauth/token
+                  authorization-uri: ttp://host.docker.internal:${test.port}/Test/oauth/authorize
+            registration:
+                exemple:
+                  client-id: client-id
+                  client-secret: client-secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: authorization_code
+                  redirect-uri: http://test/redirect-uri
+                  provider: test
    cloud:
       gateway:
          httpclient:

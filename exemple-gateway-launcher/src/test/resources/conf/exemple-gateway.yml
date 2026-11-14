@@ -2,7 +2,6 @@ logging:
    config: file:/usr/local/etc/gateway/logback.xml
 gateway:
    security:
-      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /*/oauth/*, /*/login
       csrf:
          excludes: /*/oauth/*, /*/login
 spring:
@@ -13,6 +12,25 @@ spring:
          resourceserver:
             jwt:
                jwk-set-uri: http://host.docker.internal:${test.port}/Test/oauth/jwks
+         client:
+            provider:
+               test:
+                  token-uri: http://host.docker.internal:${test.port}/Test/oauth/token
+                  authorization-uri: /ExempleAuthorization/authorize
+            registration:
+                exemple-user:
+                  client-id: resource
+                  client-secret: secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: authorization_code
+                  redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+                  provider: test
+                exemple-app:
+                  client-id: resource
+                  client-secret: secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: client_credentials
+                  provider: test
    cloud:
       gateway:
          httpclient:
@@ -35,7 +53,6 @@ spring:
                   - Path=/${test.contextpath}/login
                   filters:
                   - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-                  - AccessTokenRelay=
                   - RemoveRequestHeader=cookie
                   - RemoveRequestHeader=x-xsrf-token
                   - SetStatus200IfRedirection=

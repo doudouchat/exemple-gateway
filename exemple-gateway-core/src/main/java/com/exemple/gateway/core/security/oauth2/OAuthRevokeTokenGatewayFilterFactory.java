@@ -7,13 +7,13 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
-import org.springframework.session.Session;
-import org.springframework.session.SessionRepository;
+import org.springframework.session.ReactiveSessionRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.exemple.gateway.core.security.helper.SessionHelper;
+import com.hazelcast.spring.session.HazelcastIndexedSessionRepository.HazelcastSession;
 
 import reactor.core.publisher.Mono;
 
@@ -28,9 +28,9 @@ public class OAuthRevokeTokenGatewayFilterFactory extends AbstractGatewayFilterF
 
     private final SessionHelper sessionHelper;
 
-    private final SessionRepository<Session> repository;
+    private final ReactiveSessionRepository<HazelcastSession> repository;
 
-    public OAuthRevokeTokenGatewayFilterFactory(SessionRepository<Session> repository, SessionHelper sessionHelper) {
+    public OAuthRevokeTokenGatewayFilterFactory(ReactiveSessionRepository<HazelcastSession> repository, SessionHelper sessionHelper) {
         super(Object.class);
         this.sessionHelper = sessionHelper;
         this.repository = repository;

@@ -9,18 +9,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.nimbusds.jose.jwk.JWKSet;
@@ -45,30 +39,6 @@ public class TestAuthorizationConfiguration {
                 .oauth2AuthorizationServer(authorizationServer -> http.securityMatcher(authorizationServer.getEndpointsMatcher()))
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
         return http.build();
-    }
-
-    @Bean
-    public RegisteredClientRepository registeredClientRepository() {
-
-        String password = "{bcrypt}" + BCrypt.hashpw("secret", BCrypt.gensalt());
-
-        var registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("resource")
-                .clientSecret(password)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://xxx")
-                .scope("test:read")
-                .scope("test:create")
-                .scope("test:delete")
-                .scope("test:update")
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).requireProofKey(false).build())
-                .build();
-
-        return new InMemoryRegisteredClientRepository(registeredClient);
-
     }
 
     @Bean

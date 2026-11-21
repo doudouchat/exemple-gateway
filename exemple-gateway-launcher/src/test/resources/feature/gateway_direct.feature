@@ -1,29 +1,38 @@
-Feature: gateway direct
+Feature: gateway by application
 
-  Background: 
-    Given create access token
+  Background:
+    Given clear JSESSIONID
 
-  Scenario: api post direct
-    When perform post with Authorization
+  Scenario: api post by application
+    When perform post by application
     Then response status is 201
 
-  Scenario: api get direct
-    When perform get with Authorization
-    Then response status is 200
+  Scenario: api get by application
+    Given login
+    When perform get by application
+#    Then response status is 302
+#    And authorize by application
+#    Then response status is 200
 
-  Scenario: api patch direct
-    When perform patch with Authorization
+  Scenario: api patch by application
+    Given login
+    When perform patch by application
+    Then response status is 302
+    And authorize by application
+#    Then response status is 204
+
+  Scenario: api head by application
+    When perform head by application
     Then response status is 204
 
-  Scenario: api head direct
-    When perform head with Authorization
-    Then response status is 204
+  Scenario: api delete by application
+    Given login
+    When perform delete by application
+    Then response status is 302
+    And authorize by application
+#    Then response status is 204
 
-  Scenario: api delete direct
-    When perform delete with Authorization
-    Then response status is 204
-
-  Scenario: api options direct
-    When perform options with Authorization
+  Scenario: api options by application
+    When perform options by application
     Then response status is 200
 

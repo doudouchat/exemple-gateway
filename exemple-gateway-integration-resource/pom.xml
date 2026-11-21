@@ -43,13 +43,8 @@
 		<!-- OAUTH -->
 
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-oauth2-authorization-server</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+			<artifactId>spring-boot-starter-security-oauth2-authorization-server</artifactId>
 		</dependency>
 
 		<!-- SPRING SESSION -->

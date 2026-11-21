@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -23,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -41,6 +43,7 @@ import io.restassured.specification.RequestSpecification;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
 class AuthorizationServerTest {
 
     private static final Pattern LOCATION = Pattern.compile(".*code=([a-zA-Z0-9\\-_]*)(&state=)?(.*)?", Pattern.DOTALL);
@@ -67,6 +70,8 @@ class AuthorizationServerTest {
         private String code;
 
         private String accessToken;
+        
+        private String codeVerifier;
 
         @Test
         @Order(1)
@@ -94,6 +99,12 @@ class AuthorizationServerTest {
         @Order(2)
         void authorize() {
 
+            // Setup code verifier
+            codeVerifier = UUID.randomUUID().toString();
+
+            var digest = DigestUtils.sha256(codeVerifier);
+            var codeChallenge = Base64.encodeBase64URLSafeString(digest);
+
             // When perform authorize
             Response response = requestSpecification
                     .redirects().follow(false)
@@ -102,6 +113,8 @@ class AuthorizationServerTest {
                     .queryParam("client_id", "resource")
                     .queryParam("scope", "test:create")
                     .queryParam("redirect_uri", "http://xxx")
+                    .queryParam("code_challenge", codeChallenge)
+                    .queryParam("code_challenge_method", "S256")
                     .get("/oauth/authorize");
 
             // Then check response
@@ -135,7 +148,8 @@ class AuthorizationServerTest {
                     "grant_type", "authorization_code",
                     "code", code,
                     "client_id", "resource",
-                    "redirect_uri", "http://xxx");
+                    "redirect_uri", "http://xxx",
+                    "code_verifier", codeVerifier);
 
             Response response = requestSpecification
                     .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))

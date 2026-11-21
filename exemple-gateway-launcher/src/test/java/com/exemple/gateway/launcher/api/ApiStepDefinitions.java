@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.exemple.gateway.launcher.common.JsonRestTemplate;
 import com.exemple.gateway.launcher.token.AuthorizationTestContext;
 
+import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 
 public class ApiStepDefinitions {
 
@@ -24,62 +26,56 @@ public class ApiStepDefinitions {
     @Autowired
     private AuthorizationTestContext authorizationContext;
 
-    @When("perform post with Authorization")
-    public void postWithAuthorization() {
+    @When("perform post by application")
+    public void postByApplication() {
 
         Map<String, Object> body = Map.of("value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + authorizationContext.getAccessToken())
                 .queryParam("debug", "true")
                 .body(body).post(URL);
 
         context.setResponse(response);
     }
 
-    @When("perform post with JSESSIONID")
-    public void postWithJSessionId() {
+    @When("perform post by browser")
+    public void postByBrowser() {
 
         Map<String, Object> body = Map.of("value", UUID.randomUUID());
 
-        Response response = JsonRestTemplate.browser()
-                .cookie("JSESSIONID", authorizationContext.getSessionId().getValue())
-                .cookie("XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .header("X-XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .queryParam("debug", "true")
+        Response response = builderBrowser()
                 .body(body).post(URL);
 
         context.setResponse(response);
     }
 
-    @When("perform get with Authorization")
-    public void getWithAuthorization() {
+    @When("perform get by application")
+    public void getByApplication() {
 
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + authorizationContext.getAccessToken())
                 .queryParam("debug", "true")
                 .get(URL + "/{id}", "123");
 
         context.setResponse(response);
+        authorizationContext.setLocation(response.getHeader("Location"));
+        authorizationContext.setSessionId(response.getDetailedCookie("JSESSIONID"));
     }
 
-    @When("perform get with JSESSIONID")
-    public void getWithJSessionId() {
+    @When("perform get by browser")
+    public void getByBrowser() {
 
-        Response response = JsonRestTemplate.browser()
-                .cookie("JSESSIONID", authorizationContext.getSessionId().getValue())
-                .cookie("XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .queryParam("debug", "true")
+        Response response = builderBrowser()
                 .get(URL + "/{id}", "123");
 
         context.setResponse(response);
+        authorizationContext.setLocation(response.getHeader("Location"));
+        authorizationContext.setSessionId(response.getDetailedCookie("JSESSIONID"));
     }
 
-    @When("perform head with Authorization")
-    public void headWithAuthorization() {
+    @When("perform head by application")
+    public void headByApplication() {
 
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + authorizationContext.getAccessToken())
                 .queryParam("debug", "true")
                 .head(URL + "/{id}", "123");
 
@@ -87,47 +83,41 @@ public class ApiStepDefinitions {
 
     }
 
-    @When("perform head with JSESSIONID")
-    public void headWithJSessionId() {
+    @When("perform head by browser")
+    public void headByBrowser() {
 
-        Response response = JsonRestTemplate.browser()
-                .cookie("JSESSIONID", authorizationContext.getSessionId().getValue())
-                .cookie("XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .queryParam("debug", "true")
+        Response response = builderBrowser()
                 .head(URL + "/{id}", "123");
 
         context.setResponse(response);
 
     }
 
-    @When("perform delete with Authorization")
-    public void deleteWithAuthorization() {
+    @When("perform delete by application")
+    public void deleteByApplication() {
 
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + authorizationContext.getAccessToken())
                 .queryParam("debug", "true")
                 .delete(URL + "/{id}", "123");
 
         context.setResponse(response);
-
+        authorizationContext.setLocation(response.getHeader("Location"));
+        authorizationContext.setSessionId(response.getDetailedCookie("JSESSIONID"));
     }
 
-    @When("perform delete with JSESSIONID")
-    public void deleteWithJSessionId() {
+    @When("perform delete by browser")
+    public void deleteByBrowser() {
 
-        Response response = JsonRestTemplate.browser()
-                .cookie("JSESSIONID", authorizationContext.getSessionId().getValue())
-                .cookie("XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .header("X-XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .queryParam("debug", "true")
+        Response response = builderBrowser()
                 .delete(URL + "/{id}", "123");
 
         context.setResponse(response);
-
+        authorizationContext.setLocation(response.getHeader("Location"));
+        authorizationContext.setSessionId(response.getDetailedCookie("JSESSIONID"));
     }
 
-    @When("perform patch with Authorization")
-    public void patchWithAuthorization() {
+    @When("perform patch by application")
+    public void patchByApplication() {
 
         Map<String, Object> patch = Map.of(
                 "op", "replace",
@@ -135,38 +125,34 @@ public class ApiStepDefinitions {
                 "value", UUID.randomUUID());
 
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + authorizationContext.getAccessToken())
                 .queryParam("debug", "true")
                 .body(Collections.singletonList(patch)).patch(URL + "/{id}", "123");
 
         context.setResponse(response);
-
+        authorizationContext.setLocation(response.getHeader("Location"));
+        authorizationContext.setSessionId(response.getDetailedCookie("JSESSIONID"));
     }
 
-    @When("perform patch with JSESSIONID")
-    public void patchWithJSessionId() {
+    @When("perform patch by browser")
+    public void patchByBrowser() {
 
         Map<String, Object> patch = Map.of(
                 "op", "replace",
                 "path", "/value",
                 "value", UUID.randomUUID());
 
-        Response response = JsonRestTemplate.browser()
-                .cookie("JSESSIONID", authorizationContext.getSessionId().getValue())
-                .cookie("XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .header("X-XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .queryParam("debug", "true")
+        Response response = builderBrowser()
                 .body(Collections.singletonList(patch)).patch(URL + "/{id}", "123");
 
         context.setResponse(response);
-
+        authorizationContext.setLocation(response.getHeader("Location"));
+        authorizationContext.setSessionId(response.getDetailedCookie("JSESSIONID"));
     }
 
-    @When("perform options with Authorization")
-    public void optionsWithAuthorization() {
+    @When("perform options by application")
+    public void optionsByApplication() {
 
         Response response = JsonRestTemplate.api()
-                .header("Authorization", "Bearer " + authorizationContext.getAccessToken())
                 .queryParam("debug", "true")
                 .options(URL + "/{id}", "123");
 
@@ -174,22 +160,29 @@ public class ApiStepDefinitions {
 
     }
 
-    @When("perform options with JSESSIONID")
-    public void optionsWithJSessionId() {
+    @When("perform options by browser")
+    public void optionsByBrowser() {
 
-        Response response = JsonRestTemplate.browser()
-                .cookie("JSESSIONID", authorizationContext.getSessionId().getValue())
-                .cookie("XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
-                .queryParam("debug", "true")
+        Response response = builderBrowser()
                 .options(URL + "/{id}", "123");
 
         context.setResponse(response);
 
     }
 
-    @When("response status is {int}")
+    @Then("response status is {int}")
     public void checkResponse(int status) {
 
         assertThat(context.getResponse().getStatusCode()).isEqualTo(status);
+    }
+
+    private RequestSpecification builderBrowser() {
+
+        return JsonRestTemplate.browser()
+                .redirects().follow(false)
+                .cookie("XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
+                .cookie("JSESSIONID", authorizationContext.getSessionId().getValue())
+                .header("X-XSRF-TOKEN", authorizationContext.getXsrfToken().getValue())
+                .queryParam("debug", "true");
     }
 }

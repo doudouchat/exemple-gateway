@@ -376,8 +376,14 @@
 													<port>${test.port}:8080</port>
 												</ports>
 												<env>
+													<spring.config.location>/usr/local/etc/resource/exemple-resource.yml</spring.config.location>
 													<server.servlet.context-path>/Test</server.servlet.context-path>
 												</env>
+												<volumes>
+													<bind>
+														<volume>${project.build.testOutputDirectory}/conf:/usr/local/etc/resource</volume>
+													</bind>
+												</volumes>
 												<wait>
 													<http>
 														<url>http://localhost:${test.port}/Test/actuator/health</url>

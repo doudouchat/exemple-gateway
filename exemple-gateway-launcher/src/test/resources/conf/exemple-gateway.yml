@@ -2,7 +2,6 @@ logging:
    config: file:/usr/local/etc/gateway/logback.xml
 gateway:
    security:
-      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /*/oauth/*, /*/login
       csrf:
          excludes: /*/oauth/*, /*/login
 spring:
@@ -12,7 +11,26 @@ spring:
       oauth2:
          resourceserver:
             jwt:
-               jwk-set-uri: http://host.docker.internal:${test.port}/Test/oauth/jwks
+               jwk-set-uri: http://host.docker.internal:${test.port}/${test.contextpath}/oauth/jwks
+         client:
+            provider:
+               test:
+                  token-uri: http://host.docker.internal:${test.port}/${test.contextpath}/oauth/token
+                  authorization-uri: /oauth/authorize
+            registration:
+                exemple-user:
+                  client-id: resource
+                  client-secret: secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: authorization_code
+                  redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+                  provider: test
+                exemple-app:
+                  client-id: resource
+                  client-secret: secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: client_credentials
+                  provider: test
    cloud:
       gateway:
          httpclient:
@@ -21,31 +39,40 @@ spring:
          server:
             webflux:
                routes:
-               -  id: authorization-service-token
-                  uri: http://host.docker.internal:${test.port}/${test.contextpath}
-                  predicates:
-                  - Path=/${test.contextpath}/oauth/token
-                  filters:
-                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-                  - OAuthAccessToken=
-                  - AddCsrfToken=
                -  id: authorization-login
                   uri: http://host.docker.internal:${test.port}/${test.contextpath}
                   predicates:
                   - Path=/${test.contextpath}/login
                   filters:
                   - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-                  - AccessTokenRelay=
                   - RemoveRequestHeader=cookie
                   - RemoveRequestHeader=x-xsrf-token
                   - SetStatus200IfRedirection=
                   - RemoveResponseHeader=Location
-               -  id: exemple
+               -  id: authorization
                   uri: http://host.docker.internal:${test.port}/${test.contextpath}
                   predicates:
-                  - Path=/${test.contextpath}/**
+                  - Path=/${test.contextpath}/oauth/authorize
                   filters:
-                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-                  - AccessTokenRelay=
+                  - SetStatus200IfRedirection=
+               -  id: actuator
+                  uri: http://host.docker.internal:${test.port}/${test.contextpath}
+                  predicates:
+                  - Path=/${test.contextpath}/actuator/**
+                  filters:
+                  - AddCsrfToken
+               -  id: resource protected by credentials
+                  uri: http://host.docker.internal:${test.port}/${test.contextpath}
+                  predicates:
+                  - Path=/${test.contextpath}/ws/test,/${test.contextpath}/ws/test/**
+                  - Method=POST,HEAD,OPTIONS
+                  filters:
+                  - TokenRelay=exemple-app
                   - RemoveRequestHeader=cookie
-                  - RemoveRequestHeader=x-xsrf-tokennn
+               -  id: resource protected by authorization code
+                  uri: http://host.docker.internal:${test.port}/${test.contextpath}
+                  predicates:
+                  - Path=/${test.contextpath}/ws/test/**
+                  - Method=GET,DELETE,PATCH
+                  filters:
+                  - TokenRelay=exemple-user

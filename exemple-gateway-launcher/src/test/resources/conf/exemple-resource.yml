@@ -1,0 +1,33 @@
+logging:
+   pattern:
+      console: "%d %-5p: %C - %m%n"
+   level:
+      root: WARN
+      com.exemple.gateway: DEBUG
+      org.springframework.security: DEBUG
+spring:
+  security:
+    oauth2:
+      authorizationserver:
+        client:
+          test:
+            registration:
+              client-id: resource
+              client-secret: "{noop}secret"
+              client-name: Articles Client
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - authorization_code
+                - refresh_token
+                - client_credentials
+              redirect-uris:
+                - http://localhost:${application.browser.port}/login/oauth2/code/exemple-user
+                - http://localhost:${application.port}/login/oauth2/code/exemple-user
+              scopes:
+                - test:read
+                - test:create
+                - test:delete
+                - test:update
+            require-proof-key: true
+            require-authorization-consent: false

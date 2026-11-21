@@ -47,7 +47,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
         var payloadAccessToken = new JWTClaimsSet.Builder()
                 .claim("user_name", "john_doe")
                 .audience("test")
-                .claim("scope", new String[] { "account:read" })
+                .claim("scope", new String[] { "resource:read" })
                 .build();
 
         accessToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadAccessToken);
@@ -56,7 +56,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
         var payloadRefreshToken = new JWTClaimsSet.Builder()
                 .claim("user_name", "john_doe")
                 .audience("test")
-                .claim("scope", new String[] { "account:read" })
+                .claim("scope", new String[] { "resource:read" })
                 .build();
 
         refreshToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadRefreshToken);

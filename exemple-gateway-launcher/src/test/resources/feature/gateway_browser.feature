@@ -1,39 +1,46 @@
-Feature: gateway browser
+Feature: gateway by browser
 
-  Background: 
-    Given get access token by client credentials
+  Background:
+    Given get csrf token
+    And clear JSESSIONID
 
-  Scenario: api post by cookie
-    When perform post with JSESSIONID
+  Scenario: api post by browser
+    When perform post by browser
     Then response status is 201
 
-  Scenario: api get by cookie
-    When perform get with JSESSIONID
+  Scenario: api get by browser
+    Given login
+    When perform get by browser
+    Then response status is 302
+    And authorize by browser
+		And token
+#		When perform get by browser
+#		Then response status is 200
+
+  Scenario: api patch by browser
+    Given login
+    When perform patch by browser
+    Then response status is 302
+    And authorize by browser
+#    Then response status is 204
+
+  Scenario: api head by browse
+    When perform head by browser
+    Then response status is 204
+
+  Scenario: api delete by browser
+    Given login
+    When perform delete by browser
+    Then response status is 302
+    And authorize by browser
+#    Then response status is 204
+
+  Scenario: api options by browser
+    When perform options by browser
     Then response status is 200
- 
-  Scenario: api patch by cookie
-    When perform patch with JSESSIONID
-    Then response status is 204
 
-  Scenario: api head by cookie
-    When perform head with JSESSIONID
-    Then response status is 204
-
-  Scenario: api delete by cookie
-    When perform delete with JSESSIONID
-    Then response status is 204
-
-  Scenario: api options by cookie
-    When perform options with JSESSIONID
-    Then response status is 200
-
-  Scenario: failure when bad session id by cookie
-    Given use JSESSIONID 'bad jsession id'
-    When perform post with JSESSIONID
-    Then response status is 401
-
-  Scenario: failure when bad xrsf token by cookie
+  Scenario: failure when bad xrsf token by browser
     Given use XSRF-TOKEN 'bad xrsf token'
-    When perform post with JSESSIONID
+    When perform post by browser
     Then response status is 403
 

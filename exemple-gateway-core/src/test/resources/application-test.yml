@@ -4,10 +4,11 @@ logging:
    level:
       root: WARN
       com.exemple.gateway: DEBUG
-      org.springframework.cloud.gateway: DEBUG
+      org.springframework.security: TRACE
+      org.springframework.cloud: TRACE
 gateway:
    security:
-      excludes: /ExempleService, /ExempleService/, /*/info, /*/health, /*/openapi.json, /ExempleAuthorization/**
+      excludes: /ExempleService, /ExempleAuthorization/login, /*/info, /*/health, /*/openapi.json
       csrf:
          excludes: /ExempleAuthorization/oauth/*
 spring:
@@ -18,26 +19,44 @@ spring:
          resourceserver:
             jwt:
                public-key-location: classpath:public_key
+         client:
+            provider:
+               test:
+                  token-uri: http://localhost:${authorization.port}/ExempleAuthorization/token
+                  authorization-uri: /ExempleAuthorization/authorize
+            registration:
+                exemple-user:
+                  client-id: client-user
+                  client-secret: client-user-secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: authorization_code
+                  redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+                  provider: test
+                exemple-app:
+                  client-id: client-app
+                  client-secret: client-app-secret
+                  client-authentication-method: client_secret_basic
+                  authorization-grant-type: client_credentials
+                  provider: test
    cloud:
       gateway:
          server:
             webflux:
                routes:
-               -  id: api-service
+               -  id: resource protected by credentials
                   uri: http://localhost:${api.port}
                   predicates:
-                  - Path=/ExempleService/**
+                  - Path=/Exemple/resource
+                  - Method=POST
                   filters:
-                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-                  - AccessTokenRelay=
-               -  id: authorization-token
-                  uri: http://localhost:${authorization.port}
+                  - TokenRelay=exemple-app
+               -  id: resource protected by authorization code
+                  uri: http://localhost:${api.port}
                   predicates:
-                  - Path=/ExempleAuthorization/oauth/token
+                  - Path=/Exemple/resource/**
+                  - Method=GET
                   filters:
-                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
-                  - OAuthAccessToken=
-                  - AddCsrfToken=
+                  - TokenRelay=exemple-user
                -  id: authorization-revoke-token
                   uri: http://localhost:${authorization.port}
                   predicates:
@@ -49,15 +68,16 @@ spring:
                   predicates:
                   - Path=/ExempleAuthorization/login
                   filters:
-                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+                  - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
                   - SetStatus200IfRedirection=
                   - RemoveResponseHeader=Location
-               -  id: authorization-service
+               -  id: authorization
                   uri: http://localhost:${authorization.port}
                   predicates:
-                  - Path=/ExempleAuthorization/**
+                  - Path=/ExempleAuthorization/authorize
                   filters:
-                  - RewriteLocationResponseHeader=NEVER_STRIP, Location, ,
+                  - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+                  - SetStatus200IfRedirection=
 api:
    port: ${api.port}
 authorization:

@@ -10,8 +10,13 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProvider;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
 import org.springframework.security.web.server.csrf.CsrfWebFilter;
@@ -22,14 +27,15 @@ import org.springframework.security.web.server.util.matcher.OrServerWebExchangeM
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 
+import com.exemple.gateway.core.security.oauth2.NotBlackListTokenReactiveOAuth2AuthorizedClientProvider;
+import com.hazelcast.core.HazelcastInstance;
+
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @ComponentScan(basePackages = "com.exemple.gateway.core.security")
 @RequiredArgsConstructor
 public class GatewaySecurityConfiguration {
-
-    private final ServerAuthenticationConverter tokenExtractor;
 
     @Value("${gateway.security.excludes:}")
     private final String[] excludes;
@@ -40,14 +46,31 @@ public class GatewaySecurityConfiguration {
         return http
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .cors(Customizer.withDefaults())
-                .authorizeExchange(authorize -> authorize
-                        .pathMatchers(this.excludes).permitAll()
-                        .anyExchange().authenticated())
                 .csrf(csrfCustomizer)
-                .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
-                        .jwt(Customizer.withDefaults())
-                        .bearerTokenConverter(tokenExtractor))
+                .anonymous(anonymous -> anonymous
+                        .principal("app"))
+                .oauth2Login(Customizer.withDefaults())
+                .oauth2Client(Customizer.withDefaults())
                 .build();
+    }
+
+    @Bean
+    public ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
+            ReactiveClientRegistrationRepository clientRegistrationRepository,
+            ServerOAuth2AuthorizedClientRepository authorizedClientRepository,
+            HazelcastInstance hazelcastInstance) {
+
+        ReactiveOAuth2AuthorizedClientProvider authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
+                .authorizationCode()
+                .refreshToken()
+                .clientCredentials()
+                .build();
+
+        var authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientRepository);
+        authorizedClientManager.setAuthorizedClientProvider(
+                new NotBlackListTokenReactiveOAuth2AuthorizedClientProvider(authorizedClientProvider, hazelcastInstance));
+
+        return authorizedClientManager;
     }
 
     @Profile("browser")

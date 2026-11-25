@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.exemple.gateway.core.GatewayServerTestConfiguration;
 import com.exemple.gateway.core.common.LoggingFilter;
@@ -26,7 +25,6 @@ import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockResponse;
 
-@ActiveProfiles("browser")
 @Slf4j
 class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
 
@@ -47,7 +45,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
         var payloadAccessToken = new JWTClaimsSet.Builder()
                 .claim("user_name", "john_doe")
                 .audience("test")
-                .claim("scope", new String[] { "account:read" })
+                .claim("scope", new String[] { "resource:read" })
                 .build();
 
         accessToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadAccessToken);
@@ -56,7 +54,7 @@ class OAuthRevokeTokenTest extends GatewayServerTestConfiguration {
         var payloadRefreshToken = new JWTClaimsSet.Builder()
                 .claim("user_name", "john_doe")
                 .audience("test")
-                .claim("scope", new String[] { "account:read" })
+                .claim("scope", new String[] { "resource:read" })
                 .build();
 
         refreshToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payloadRefreshToken);

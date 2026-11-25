@@ -3,78 +3,48 @@ package com.exemple.gateway.launcher.token;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.exemple.gateway.launcher.common.JsonRestTemplate;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 
 import io.cucumber.java.en.Given;
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 
 public class AuthorizationStepDefinitions {
-
-    private static final Pattern LOCATION = Pattern.compile(".*code=([a-zA-Z0-9\\-_]*)(&state=)?(.*)?", Pattern.DOTALL);
 
     @Autowired
     private AuthorizationTestContext context;
 
-    @Autowired
-    private JWSSigner signer;
-
-    @Given("create access token")
-    public void createAccessToken() throws JOSEException {
-
-        var payload = new JWTClaimsSet.Builder()
-                .audience("test")
-                .claim("scope", new String[] { "test:read", "test:create", "test:delete", "test:update" })
-                .build();
-
-        SignedJWT accessToken = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), payload);
-        accessToken.sign(signer);
-
-        context.setAccessToken(accessToken.serialize());
-
-    }
-
-    @Given("get access token by client credentials")
-    public void tokenByClientCredentials() {
+    @Given("get csrf token")
+    public void tokenCsrf() {
 
         Map<String, String> params = Map.of("grant_type", "client_credentials");
 
         Response response = JsonRestTemplate.given(JsonRestTemplate.BROWSER_URL, ContentType.URLENC)
-                .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))
-                .formParams(params).post("/oauth/token");
+                .formParams(params).get("/actuator/health");
 
         assertAll(
-                () -> assertThat(response.getStatusCode()).isEqualTo(200),
+                () -> assertThat(response.getStatusCode()).as(response.asPrettyString()).isEqualTo(200),
                 () -> assertThat(response.getCookies()).isNotEmpty(),
-                () -> assertThat(response.getCookie("JSESSIONID")).isNotNull(),
                 () -> assertThat(response.getCookie("XSRF-TOKEN")).isNotNull());
-
-        Cookie sessionId = response.getDetailedCookie("JSESSIONID");
         Cookie xsrfToken = response.getDetailedCookie("XSRF-TOKEN");
 
-        context.setSessionId(sessionId);
         context.setXsrfToken(xsrfToken);
 
     }
 
-    @Given("get access token by authorize")
-    public void tokenByAuthorize() {
-
-        // Given login
+    @Given("login")
+    public void login() {
 
         Response responseLogin = JsonRestTemplate.given(JsonRestTemplate.BROWSER_URL, ContentType.URLENC)
                 .formParams("username", "jean.dupond@gmail.com", "password", "123")
@@ -82,61 +52,95 @@ public class AuthorizationStepDefinitions {
         assertThat(responseLogin.getStatusCode()).isEqualTo(200);
         String xAuthToken = responseLogin.getHeader("X-Auth-Token");
 
-        // When perform authorize
-
-        Response response = JsonRestTemplate.browser()
-                .redirects().follow(false)
-                .header("X-Auth-Token", xAuthToken)
-                .queryParam("response_type", "code")
-                .queryParam("client_id", "resource")
-                .queryParam("scope", "test:read")
-                .queryParam("redirect_uri", "http://xxx")
-                .queryParam("state", "123")
-                .get("/oauth/authorize");
-
-        String location = response.getHeader("Location");
-        assertThat(response.getStatusCode()).isEqualTo(302);
-
-        Matcher locationMatcher = LOCATION.matcher(location);
-        assertThat(locationMatcher.lookingAt()).isTrue();
-
-        String code = locationMatcher.group(1);
-        String state = locationMatcher.group(3);
-
-        assertThat(state).isEqualTo("123");
-
-        // And perform token
-
-        Map<String, String> params = Map.of(
-                "grant_type", "authorization_code",
-                "code", code,
-                "client_id", "resource",
-                "redirect_uri", "http://xxx");
-
-        Response responseToken = JsonRestTemplate.given(JsonRestTemplate.BROWSER_URL, ContentType.URLENC)
-                .header("Authorization", "Basic " + Base64.encodeBase64String("resource:secret".getBytes()))
-                .formParams(params)
-                .post("/oauth/token");
-
-        // Then check response
-        assertAll(
-                () -> assertThat(responseToken.getStatusCode()).isEqualTo(200),
-                () -> assertThat(responseToken.getCookies()).isNotEmpty(),
-                () -> assertThat(responseToken.getCookie("JSESSIONID")).isNotNull(),
-                () -> assertThat(responseToken.getCookie("XSRF-TOKEN")).isNotNull());
-
-        Cookie sessionId = responseToken.getDetailedCookie("JSESSIONID");
-        Cookie xsrfToken = responseToken.getDetailedCookie("XSRF-TOKEN");
-
-        context.setSessionId(sessionId);
-        context.setXsrfToken(xsrfToken);
+        context.setXAuthToken(xAuthToken);
 
     }
 
-    @Given("use JSESSIONID {string}")
-    public void useJSessionId(String sessionId) {
+    @Given("authorize by browser")
+    public void authorizeByBrowser() {
 
-        context.setSessionId(new Cookie.Builder("JSESSIONID", sessionId).build());
+        authorize(JsonRestTemplate.browser());
+
+    }
+
+    @Given("authorize by application")
+    public void authorizeByApplication() {
+
+        authorize(JsonRestTemplate.api());
+
+    }
+
+    private void authorize(RequestSpecification request) {
+
+        var location = URI.create(context.getLocation());
+        var queryParams = Arrays.stream(location.getQuery().split("&"))
+                .map(AuthorizationStepDefinitions::decode)
+                .map(query -> query.split("="))
+                .collect(Collectors.toMap(query -> query[0], query -> query[1]));
+
+        Response response = request
+                .redirects().follow(false)
+                .cookie("JSESSIONID", context.getSessionId().getValue())
+                .header("X-Auth-Token", context.getXAuthToken())
+                .queryParams(queryParams)
+                .get(location);
+
+        assertThat(response.getStatusCode()).isEqualTo(200);
+
+        context.setLocation(response.getHeader("Location"));
+
+    }
+
+    @Given("token by browser")
+    public void tokenByBrowser() {
+
+        var location = URI.create(context.getLocation());
+        var queryParams = Arrays.stream(location.getQuery().split("&"))
+                .map(AuthorizationStepDefinitions::decode)
+                .map(query -> query.split("="))
+                .collect(Collectors.toMap(query -> query[0], query -> query[1]));
+
+        queryParams.put("state", queryParams.get("state") + "=");
+
+        Response response = JsonRestTemplate.given(context.getLocation(), ContentType.JSON)
+                .redirects().follow(false)
+                .cookie("JSESSIONID", context.getSessionId().getValue())
+                .cookie("XSRF-TOKEN", context.getXsrfToken().getValue())
+                .header("X-XSRF-TOKEN", context.getXsrfToken().getValue())
+                .queryParams(queryParams)
+                .get(location);
+
+        assertThat(response.getStatusCode()).isEqualTo(302);
+        assertThat(response.getHeader("Location")).isEqualTo("/");
+
+    }
+
+    @Given("token by application")
+    public void tokenByApplication() {
+
+        var location = URI.create(context.getLocation());
+        var queryParams = Arrays.stream(location.getQuery().split("&"))
+                .map(AuthorizationStepDefinitions::decode)
+                .map(query -> query.split("="))
+                .collect(Collectors.toMap(query -> query[0], query -> query[1]));
+
+        queryParams.put("state", queryParams.get("state") + "=");
+
+        Response response = JsonRestTemplate.given(context.getLocation(), ContentType.JSON)
+                .redirects().follow(false)
+                .cookie("JSESSIONID", context.getSessionId().getValue())
+                .queryParams(queryParams)
+                .get(location);
+
+        assertThat(response.getStatusCode()).isEqualTo(302);
+        assertThat(response.getHeader("Location")).isEqualTo("/");
+
+    }
+
+    @Given("clear JSESSIONID")
+    public void clearJSessionId() {
+
+        context.setSessionId(new Cookie.Builder("JSESSIONID", null).setMaxAge(0).build());
 
     }
 
@@ -145,6 +149,10 @@ public class AuthorizationStepDefinitions {
 
         context.setXsrfToken(new Cookie.Builder("XSRF-TOKEN", xsrfToken).build());
 
+    }
+
+    private static String decode(String value) {
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
 }

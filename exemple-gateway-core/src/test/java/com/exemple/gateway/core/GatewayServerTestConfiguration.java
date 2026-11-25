@@ -2,8 +2,8 @@ package com.exemple.gateway.core;
 
 import java.io.IOException;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +31,7 @@ public class GatewayServerTestConfiguration {
 
     protected MockWebServer authorizationServer;
 
-    @BeforeAll
+    @BeforeEach
     void startMockServer() throws IOException {
         this.apiServer = new MockWebServer();
         this.apiServer.start(apiPort);
@@ -39,7 +39,7 @@ public class GatewayServerTestConfiguration {
         this.authorizationServer.start(authorizationPort);
     }
 
-    @AfterAll
+    @AfterEach
     void closeMockServer() throws IOException {
         this.apiServer.shutdown();
         this.authorizationServer.shutdown();

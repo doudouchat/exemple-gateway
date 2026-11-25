@@ -11,20 +11,13 @@ import io.restassured.http.Cookie;
 @ScenarioScope
 public class AuthorizationTestContext {
 
-    private String accessToken;
-
     private Cookie sessionId;
 
     private Cookie xsrfToken;
 
-    public String getAccessToken() {
-        assertThat(this.accessToken).as("no access token").isNotNull();
-        return this.accessToken;
-    }
+    private String xAuthToken;
 
-    public void setAccessToken(String token) {
-        this.accessToken = token;
-    }
+    private String location;
 
     public Cookie getSessionId() {
         assertThat(this.sessionId).as("no session id").isNotNull();
@@ -42,6 +35,24 @@ public class AuthorizationTestContext {
 
     public void setXsrfToken(Cookie xsrfToken) {
         this.xsrfToken = xsrfToken;
+    }
+
+    public String getXAuthToken() {
+        assertThat(this.xAuthToken).as("no xAuthToken").isNotNull();
+        return xAuthToken;
+    }
+
+    public void setXAuthToken(String xAuthToken) {
+        this.xAuthToken = xAuthToken;
+    }
+
+    public String getLocation() {
+        assertThat(this.location).as("no location").isNotNull();
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
 }
